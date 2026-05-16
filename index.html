@@ -4,7 +4,6 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sistema de Vales — Municipalidad de Caá Catí</title>
-<!-- QR Code library -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
@@ -131,40 +130,65 @@
   .modal-body { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 1.25rem; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-  /* ── VOUCHER IMPRIMIBLE ── */
-  #voucher-container {
+  /* VOUCHER OVERLAY (pantalla normal) */
+  #voucher-overlay {
     display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    z-index: 200; align-items: center; justify-content: center; padding: 1rem;
+    z-index: 200; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto;
   }
-  #voucher-container.show { display: flex; }
+  #voucher-overlay.show { display: flex; }
   #voucher-wrap {
     background: white; border-radius: var(--radius); padding: 1.5rem;
-    max-width: 400px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    max-width: 420px; width: 100%;
   }
-  #voucher-actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 1rem; }
+  .voucher-actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 1rem; }
+
+  /* VOUCHER — el contenido real que se imprime */
   #voucher-print {
-    background: white; border: 1px solid #ccc; border-radius: 8px;
-    padding: 1.25rem; font-family: Arial, sans-serif;
+    background: white; border: 1px solid #ddd; border-radius: 8px;
+    padding: 1.5rem; font-family: Arial, sans-serif;
   }
   .vp-header { text-align: center; border-bottom: 2px solid #185FA5; padding-bottom: 0.75rem; margin-bottom: 1rem; }
-  .vp-muni { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
-  .vp-title { font-size: 20px; font-weight: 700; color: #185FA5; margin: 2px 0; }
+  .vp-muni { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
+  .vp-title { font-size: 22px; font-weight: 700; color: #185FA5; margin: 3px 0; }
   .vp-id { font-size: 13px; font-family: monospace; color: #333; }
-  .vp-body { margin-bottom: 1rem; }
-  .vp-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 5px 0; border-bottom: 0.5px solid #eee; font-size: 13px; }
+  .vp-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 0.5px solid #eee; font-size: 13px; }
   .vp-row:last-child { border-bottom: none; }
-  .vp-key { color: #666; flex-shrink: 0; margin-right: 8px; }
-  .vp-val { font-weight: 500; text-align: right; }
-  .vp-monto-big { font-size: 22px; font-weight: 700; color: #185FA5; text-align: center; padding: 0.75rem 0; border: 2px solid #185FA5; border-radius: 6px; margin: 0.75rem 0; }
-  .vp-qr { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 0.75rem; }
-  .vp-qr-label { font-size: 10px; color: #888; text-align: center; }
-  .vp-footer { text-align: center; font-size: 10px; color: #999; margin-top: 0.75rem; border-top: 0.5px solid #eee; padding-top: 0.75rem; }
+  .vp-key { color: #777; }
+  .vp-val { font-weight: 600; text-align: right; }
+  .vp-monto-box { font-size: 24px; font-weight: 700; color: #185FA5; text-align: center; padding: 0.75rem; border: 2px solid #185FA5; border-radius: 6px; margin: 0.875rem 0; }
+  .vp-qr-area { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 0.75rem; }
+  .vp-qr-note { font-size: 10px; color: #999; text-align: center; max-width: 240px; }
+  .vp-footer { text-align: center; font-size: 10px; color: #aaa; margin-top: 0.75rem; border-top: 0.5px solid #eee; padding-top: 0.75rem; line-height: 1.5; }
 
+  /* ══ PRINT STYLES ══ */
   @media print {
-    body * { display: none !important; }
-    #voucher-print, #voucher-print * { display: block !important; }
-    #voucher-print { position: fixed; inset: 0; border: none; padding: 1.5rem; box-shadow: none; }
-    #voucher-actions { display: none !important; }
+    /* Ocultar absolutamente todo */
+    body > * { display: none !important; }
+    /* Mostrar solo el voucher */
+    #voucher-overlay,
+    #voucher-overlay #voucher-wrap,
+    #voucher-overlay #voucher-wrap #voucher-print,
+    #voucher-overlay #voucher-wrap #voucher-print * {
+      display: block !important;
+      visibility: visible !important;
+    }
+    #voucher-overlay {
+      position: static !important;
+      background: none !important;
+      padding: 0 !important;
+    }
+    #voucher-wrap {
+      padding: 0 !important;
+      border-radius: 0 !important;
+      max-width: 100% !important;
+    }
+    .voucher-actions { display: none !important; }
+    #voucher-print {
+      border: none !important;
+      padding: 1.5cm !important;
+      border-radius: 0 !important;
+    }
+    @page { margin: 0; size: A4; }
   }
 
   @media (max-width: 480px) {
@@ -192,19 +216,14 @@
 <!-- PANEL SECRETARÍA -->
 <div id="panel-secretaria" class="panel">
   <div class="topbar">
-    <div class="topbar-left">
-      <span>🎫</span>
-      <span class="topbar-name">Secretaría General de Gobierno</span>
-    </div>
+    <div class="topbar-left"><span>🎫</span><span class="topbar-name">Secretaría General de Gobierno</span></div>
     <button class="logout-btn" onclick="logout()">Salir</button>
   </div>
-
   <div class="stats-grid">
     <div class="stat"><p class="stat-label">Emitidos hoy</p><p class="stat-num blue" id="s-hoy">—</p></div>
     <div class="stat"><p class="stat-label">Pendientes</p><p class="stat-num amber" id="s-pend">—</p></div>
     <div class="stat"><p class="stat-label">Canjeados (mes)</p><p class="stat-num green" id="s-canj">—</p></div>
   </div>
-
   <div class="card">
     <p class="card-title">Emitir nuevo vale</p>
     <div class="form-row-1">
@@ -251,7 +270,6 @@
       <button class="btn-success" id="btn-emitir" onclick="emitirVale()">＋ Emitir vale</button>
     </div>
   </div>
-
   <div class="card">
     <p class="card-title">Vales emitidos</p>
     <div class="filter-row">
@@ -274,13 +292,9 @@
 <!-- PANEL COMERCIO -->
 <div id="panel-comercio" class="panel">
   <div class="topbar">
-    <div class="topbar-left">
-      <span>🏪</span>
-      <span class="topbar-name" id="comercio-topbar">Comercio</span>
-    </div>
+    <div class="topbar-left"><span>🏪</span><span class="topbar-name" id="comercio-topbar">Comercio</span></div>
     <button class="logout-btn" onclick="logout()">Salir</button>
   </div>
-
   <div class="card">
     <p class="card-title">Canjear vale</p>
     <div class="canjear-row">
@@ -294,7 +308,6 @@
     <div class="alert alert-ok" id="alert-ok">✅ <span id="alert-ok-msg"></span></div>
     <div class="alert alert-err" id="alert-err">❌ <span id="alert-err-msg"></span></div>
   </div>
-
   <div class="card">
     <p class="card-title">Mis vales para facturar</p>
     <div class="export-bar">
@@ -316,20 +329,14 @@
 <!-- PANEL FINANZAS -->
 <div id="panel-finanzas" class="panel">
   <div class="topbar">
-    <div class="topbar-left">
-      <span>📊</span>
-      <span class="topbar-name">Finanzas</span>
-      <span class="badge-ro">Solo lectura</span>
-    </div>
+    <div class="topbar-left"><span>📊</span><span class="topbar-name">Finanzas</span><span class="badge-ro">Solo lectura</span></div>
     <button class="logout-btn" onclick="logout()">Salir</button>
   </div>
-
   <div class="stats-grid">
     <div class="stat"><p class="stat-label">Emitido (mes)</p><p class="stat-num blue" id="f-emit">—</p></div>
     <div class="stat"><p class="stat-label">Canjeado (mes)</p><p class="stat-num green" id="f-canj">—</p></div>
     <div class="stat"><p class="stat-label">Pendiente</p><p class="stat-num amber" id="f-pend">—</p></div>
   </div>
-
   <div class="card">
     <p class="card-title">Todos los vales</p>
     <div class="filter-row">
@@ -362,28 +369,28 @@
 </div>
 
 <!-- VOUCHER IMPRIMIBLE -->
-<div id="voucher-container">
+<div id="voucher-overlay">
   <div id="voucher-wrap">
-    <div id="voucher-actions">
+    <div class="voucher-actions">
       <button class="btn-secondary" onclick="cerrarVoucher()">Cerrar</button>
-      <button class="btn-primary" onclick="window.print()">🖨️ Imprimir</button>
+      <button class="btn-primary" onclick="imprimirVoucher()">🖨️ Imprimir</button>
     </div>
     <div id="voucher-print">
       <div class="vp-header">
         <p class="vp-muni">Municipalidad de Caá Catí — Corrientes</p>
         <p class="vp-title">VALE MUNICIPAL</p>
-        <p class="vp-id" id="vp-id">VAL-2026-0000</p>
+        <p class="vp-id" id="vp-id">—</p>
       </div>
-      <div class="vp-body">
+      <div id="vp-body">
         <div class="vp-row"><span class="vp-key">Destinatario</span><span class="vp-val" id="vp-dest">—</span></div>
         <div class="vp-row" id="vp-dni-row"><span class="vp-key">DNI</span><span class="vp-val" id="vp-dni">—</span></div>
         <div class="vp-row"><span class="vp-key">Comercio autorizado</span><span class="vp-val" id="vp-comercio">—</span></div>
         <div class="vp-row"><span class="vp-key">Fecha de emisión</span><span class="vp-val" id="vp-fecha">—</span></div>
       </div>
-      <div class="vp-monto-big" id="vp-monto">$0</div>
-      <div class="vp-qr">
+      <div class="vp-monto-box" id="vp-monto">$0</div>
+      <div class="vp-qr-area">
         <div id="vp-qr-code"></div>
-        <p class="vp-qr-label">El comercio debe escanear o ingresar este código para validar el vale</p>
+        <p class="vp-qr-note">El comercio debe escanear este código o ingresarlo manualmente en la app para validar el vale</p>
       </div>
       <div class="vp-footer">
         Secretaría General de Gobierno — Municipalidad de Caá Catí<br>
@@ -393,11 +400,15 @@
   </div>
 </div>
 
+<!-- Canvas oculto para generar imagen WhatsApp -->
+<canvas id="wsp-canvas" style="display:none;"></canvas>
+
 <script>
 // ══════════════════════════════════════════════
-//  CONFIGURACIÓN
+//  CONFIGURACIÓN — reemplazá con tu URL de Apps Script
 // ══════════════════════════════════════════════
-const API = 'https://script.google.com/macros/s/AKfycbxqIqtNSFFVz1AHAMqYCIHWAzoGV6CZ4KbbkwSKVQd23pANFe2F6O_i6foHFnnb1i30PA/exec';
+const API      = 'https://script.google.com/macros/s/AKfycbxqIqtNSFFVz1AHAMqYCIHWAzoGV6CZ4KbbkwSKVQd23pANFe2F6O_i6foHFnnb1i30PA/exec';
+const APP_URL  = 'https://caacati.github.io/vales-municipales/'; // URL de la app en GitHub Pages
 
 // ══════════════════════════════════════════════
 //  ESTADO
@@ -406,6 +417,18 @@ let sesion = null;
 let config = {};
 let pendFacturar = [];
 let pass = '';
+
+// ══════════════════════════════════════════════
+//  DEEP LINK: si la URL tiene ?canjear=VAL-xxx, pre-carga el código
+// ══════════════════════════════════════════════
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const codigo = params.get('canjear');
+  if (codigo) {
+    // Guardamos para pre-cargar una vez que el comercio se loguee
+    window._precargaCodigo = codigo.toUpperCase();
+  }
+});
 
 // ══════════════════════════════════════════════
 //  API
@@ -424,10 +447,8 @@ async function api(params) {
 //  FORMATOS
 // ══════════════════════════════════════════════
 function fmt$(n) { return '$' + Number(n).toLocaleString('es-AR'); }
-
 function fmtF(iso) {
   if (!iso) return '';
-  // Limpiar sufijos de timezone si quedaron
   const clean = String(iso).replace(/T.*$/, '').trim();
   const p = clean.split('-');
   return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0] : clean;
@@ -444,34 +465,37 @@ async function doLogin() {
 
   const btn = document.querySelector('.btn-login');
   btn.textContent = 'Verificando...'; btn.disabled = true;
-
   pass = p;
+
   const res = await api({ accion: 'login' });
   btn.textContent = 'Ingresar'; btn.disabled = false;
 
   if (!res.ok) { err.textContent = res.error || 'Contraseña incorrecta.'; pass = ''; return; }
-
   sesion = res;
+
   const cfg = await api({ accion: 'getConfig' });
   if (cfg.ok) { config = cfg; poblarSelectores(); }
 
   document.getElementById('login-screen').style.display = 'none';
 
   if (res.rol === 'secretaria') {
-    mostrarPanel('panel-secretaria');
-    cargarStatsSec(); cargarValesSec();
+    mostrarPanel('panel-secretaria'); cargarStatsSec(); cargarValesSec();
   } else if (res.rol === 'finanzas') {
-    mostrarPanel('panel-finanzas');
-    cargarStatsFin(); cargarValesFin();
+    mostrarPanel('panel-finanzas'); cargarStatsFin(); cargarValesFin();
   } else if (res.rol === 'comercio') {
     document.getElementById('comercio-topbar').textContent = res.comercioNombre || res.nombre;
     mostrarPanel('panel-comercio');
+    // Pre-cargar código si vino por QR
+    if (window._precargaCodigo) {
+      document.getElementById('canj-codigo').value = window._precargaCodigo;
+      window._precargaCodigo = null;
+    }
     cargarValesCom();
   }
 }
 
 function poblarSelectores() {
-  const areas = config.areas || [];
+  const areas    = config.areas    || [];
   const comercios = config.comercios || [];
 
   const selArea = document.getElementById('n-area');
@@ -479,8 +503,7 @@ function poblarSelectores() {
   areas.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; selArea.appendChild(o); });
 
   [document.getElementById('n-comercio'), document.getElementById('sec-comercio'), document.getElementById('fin-comercio')].forEach((sel, i) => {
-    const opt0 = i === 0 ? '<option value="">Seleccionar...</option>' : '<option value="">Todos los comercios</option>';
-    sel.innerHTML = opt0;
+    sel.innerHTML = i === 0 ? '<option value="">Seleccionar...</option>' : '<option value="">Todos los comercios</option>';
     comercios.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nombre; sel.appendChild(o); });
   });
 }
@@ -501,13 +524,13 @@ function logout() {
 document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
 // ══════════════════════════════════════════════
-//  TIPO DESTINATARIO / WSP
+//  TIPO / WSP TOGGLE
 // ══════════════════════════════════════════════
 let tipoDestinatario = 'persona';
 function setTipo(t) {
   tipoDestinatario = t;
   document.getElementById('campos-persona').style.display = t === 'persona' ? 'block' : 'none';
-  document.getElementById('campos-area').style.display = t === 'area' ? 'block' : 'none';
+  document.getElementById('campos-area').style.display    = t === 'area'    ? 'block' : 'none';
   document.getElementById('btn-persona').classList.toggle('active', t === 'persona');
   document.getElementById('btn-area').classList.toggle('active', t === 'area');
 }
@@ -534,9 +557,9 @@ async function cargarValesSec() {
   document.getElementById('lista-sec').innerHTML = '<p class="loading">Cargando...</p>';
   const res = await api({
     accion: 'getVales',
-    desde: document.getElementById('sec-desde').value,
-    hasta: document.getElementById('sec-hasta').value,
-    estado: document.getElementById('sec-estado').value,
+    desde:    document.getElementById('sec-desde').value,
+    hasta:    document.getElementById('sec-hasta').value,
+    estado:   document.getElementById('sec-estado').value,
     comercio: document.getElementById('sec-comercio').value,
   });
   if (!res.ok) { document.getElementById('lista-sec').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
@@ -564,13 +587,11 @@ async function emitirVale() {
 
   const btn = document.getElementById('btn-emitir');
   btn.textContent = 'Emitiendo...'; btn.disabled = true;
-
   const res = await api({ accion: 'emitirVale', tipo: tipoDestinatario, destinatario, dni, comercioId, monto });
   btn.textContent = '＋ Emitir vale'; btn.disabled = false;
 
   if (!res.ok) { alert('Error: ' + res.error); return; }
 
-  // Limpiar formulario
   document.getElementById('n-benef').value = '';
   document.getElementById('n-dni').value = '';
   document.getElementById('n-area').value = '';
@@ -578,63 +599,200 @@ async function emitirVale() {
   document.getElementById('n-monto').value = '';
 
   const envio = document.getElementById('n-envio').value;
-
   if (envio === 'imprimir') {
     mostrarVoucher(res);
   } else {
-    // WhatsApp
-    const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
-    const comercioNombre = (config.comercios || []).find(c => c.id === comercioId)?.nombre || comercioId;
-    const msg = encodeURIComponent(
-      `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n\n` +
-      `Código: *${res.id}*\n` +
-      `Beneficiario: ${res.destinatario}\n` +
-      `Comercio: ${res.comercioNombre || comercioNombre}\n` +
-      `Monto: ${fmt$(res.monto)}\n` +
-      `Fecha: ${fmtF(res.fecha)}\n\n` +
-      `Presentá este código en el comercio para canjearlo.`
-    );
-    const url = tel ? `https://wa.me/549${tel}?text=${msg}` : `https://wa.me/?text=${msg}`;
-    window.open(url, '_blank');
+    await enviarPorWhatsApp(res);
   }
 
-  cargarStatsSec();
-  cargarValesSec();
+  cargarStatsSec(); cargarValesSec();
 }
 
 // ══════════════════════════════════════════════
-//  VOUCHER
+//  VOUCHER IMPRIMIBLE
 // ══════════════════════════════════════════════
+let _voucherQR = null;
+
 function mostrarVoucher(vale) {
-  document.getElementById('vp-id').textContent = vale.id;
-  document.getElementById('vp-dest').textContent = vale.destinatario;
-  document.getElementById('vp-fecha').textContent = fmtF(vale.fecha);
-  document.getElementById('vp-monto').textContent = fmt$(vale.monto);
+  document.getElementById('vp-id').textContent      = vale.id;
+  document.getElementById('vp-dest').textContent    = vale.destinatario;
+  document.getElementById('vp-fecha').textContent   = fmtF(vale.fecha);
+  document.getElementById('vp-monto').textContent   = fmt$(vale.monto);
   document.getElementById('vp-comercio').textContent = vale.comercioNombre || '—';
 
   const dniRow = document.getElementById('vp-dni-row');
-  if (vale.dni) {
-    document.getElementById('vp-dni').textContent = vale.dni;
-    dniRow.style.display = 'flex';
-  } else {
-    dniRow.style.display = 'none';
-  }
+  if (vale.dni) { document.getElementById('vp-dni').textContent = vale.dni; dniRow.style.display = 'flex'; }
+  else { dniRow.style.display = 'none'; }
 
-  // Generar QR
+  // QR apunta a la app con el código pre-cargado
   const qrDiv = document.getElementById('vp-qr-code');
   qrDiv.innerHTML = '';
-  new QRCode(qrDiv, {
-    text: vale.id,
-    width: 110, height: 110,
+  _voucherQR = new QRCode(qrDiv, {
+    text: APP_URL + '?canjear=' + vale.id,
+    width: 120, height: 120,
     colorDark: '#185FA5', colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.M
   });
 
-  document.getElementById('voucher-container').classList.add('show');
+  document.getElementById('voucher-overlay').classList.add('show');
 }
 
 function cerrarVoucher() {
-  document.getElementById('voucher-container').classList.remove('show');
+  document.getElementById('voucher-overlay').classList.remove('show');
+}
+
+function imprimirVoucher() {
+  window.print();
+}
+
+// ══════════════════════════════════════════════
+//  WHATSAPP COMO IMAGEN
+// ══════════════════════════════════════════════
+async function enviarPorWhatsApp(vale) {
+  // Generar QR en canvas oculto
+  const qrDiv = document.createElement('div');
+  qrDiv.style.display = 'none';
+  document.body.appendChild(qrDiv);
+
+  await new Promise(resolve => {
+    new QRCode(qrDiv, {
+      text: APP_URL + '?canjear=' + vale.id,
+      width: 200, height: 200,
+      colorDark: '#185FA5', colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    setTimeout(resolve, 400); // esperar que el QR se genere
+  });
+
+  const qrImg = qrDiv.querySelector('img') || qrDiv.querySelector('canvas');
+
+  // Dibujar todo en canvas
+  const canvas = document.getElementById('wsp-canvas');
+  const ctx = canvas.getContext('2d');
+  const W = 600, H = 480;
+  canvas.width = W; canvas.height = H;
+
+  // Fondo blanco
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+
+  // Franja superior azul
+  ctx.fillStyle = '#185FA5';
+  ctx.fillRect(0, 0, W, 80);
+
+  // Texto encabezado
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 13px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('MUNICIPALIDAD DE CAÁ CATÍ — CORRIENTES', W/2, 28);
+  ctx.font = 'bold 28px Arial';
+  ctx.fillText('VALE MUNICIPAL', W/2, 60);
+
+  // ID del vale
+  ctx.fillStyle = '#185FA5';
+  ctx.font = 'bold 16px monospace';
+  ctx.fillText(vale.id, W/2, 110);
+
+  // Línea separadora
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(40, 125); ctx.lineTo(W-40, 125); ctx.stroke();
+
+  // Datos
+  ctx.textAlign = 'left';
+  ctx.font = '13px Arial';
+  const datos = [
+    ['Destinatario', vale.destinatario],
+    vale.dni ? ['DNI', vale.dni] : null,
+    ['Comercio autorizado', vale.comercioNombre || '—'],
+    ['Fecha de emisión', fmtF(vale.fecha)],
+  ].filter(Boolean);
+
+  let y = 155;
+  datos.forEach(([k, v]) => {
+    ctx.fillStyle = '#888888';
+    ctx.fillText(k, 40, y);
+    ctx.fillStyle = '#1a1a18';
+    ctx.font = 'bold 13px Arial';
+    ctx.fillText(v, 200, y);
+    ctx.font = '13px Arial';
+    y += 30;
+  });
+
+  // Caja monto
+  ctx.strokeStyle = '#185FA5';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(40, y + 5, W - 80, 52, 8) : ctx.rect(40, y + 5, W - 80, 52);
+  ctx.stroke();
+  ctx.fillStyle = '#185FA5';
+  ctx.font = 'bold 26px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText(fmt$(vale.monto), W/2, y + 38);
+
+  // QR a la derecha
+  if (qrImg) {
+    try {
+      const qrX = W - 220, qrY = 130;
+      if (qrImg.tagName === 'CANVAS') {
+        ctx.drawImage(qrImg, qrX, qrY, 170, 170);
+      } else {
+        await new Promise(r => {
+          const img = new Image();
+          img.onload = () => { ctx.drawImage(img, qrX, qrY, 170, 170); r(); };
+          img.src = qrImg.src;
+        });
+      }
+      // Reubicar datos a la izquierda si hay QR
+    } catch(e) {}
+  }
+
+  // Footer
+  ctx.fillStyle = '#aaaaaa';
+  ctx.font = '11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('Escanear el QR o ingresar el código en la app del comercio', W/2, H - 20);
+
+  document.body.removeChild(qrDiv);
+
+  // Convertir canvas a blob y compartir / descargar
+  canvas.toBlob(async blob => {
+    const file = new File([blob], `vale-${vale.id}.jpg`, { type: 'image/jpeg' });
+
+    // Si el navegador soporta Web Share API con archivos (móvil)
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: `Vale Municipal ${vale.id}`,
+          text: `Vale Municipal — ${vale.destinatario} — ${fmt$(vale.monto)}`,
+        });
+        return;
+      } catch(e) { /* fallback */ }
+    }
+
+    // Fallback: descargar la imagen + abrir WhatsApp con texto
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `vale-${vale.id}.jpg`; a.click();
+    URL.revokeObjectURL(url);
+
+    // Abrir WhatsApp con mensaje de texto como respaldo
+    setTimeout(() => {
+      const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
+      const msg = encodeURIComponent(
+        `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n\n` +
+        `Código: *${vale.id}*\n` +
+        `Beneficiario: ${vale.destinatario}\n` +
+        `Comercio: ${vale.comercioNombre}\n` +
+        `Monto: ${fmt$(vale.monto)}\n` +
+        `Fecha: ${fmtF(vale.fecha)}\n\n` +
+        `Adjunto encontrarás la imagen del vale con el código QR.`
+      );
+      const waUrl = tel ? `https://wa.me/549${tel}?text=${msg}` : `https://wa.me/?text=${msg}`;
+      window.open(waUrl, '_blank');
+    }, 800);
+  }, 'image/jpeg', 0.95);
 }
 
 // ══════════════════════════════════════════════
@@ -652,7 +810,6 @@ async function cargarValesCom() {
   let vales = res.vales.filter(v => v.estado !== 'pendiente');
   if (!verFact) vales = vales.filter(v => v.estado !== 'facturado');
 
-  // Filtrar por fecha de canje si hay rango
   if (desde || hasta) {
     vales = vales.filter(v => {
       const f = v.fechaCanje || v.fecha;
@@ -663,7 +820,7 @@ async function cargarValesCom() {
   }
 
   const paraFacturar = vales.filter(v => v.estado === 'canjeado');
-  document.getElementById('com-total').textContent = 'Por facturar: ' + fmt$(paraFacturar.reduce((s, v) => s + v.monto, 0));
+  document.getElementById('com-total').textContent = 'Por facturar: ' + fmt$(paraFacturar.reduce((s,v) => s+v.monto, 0));
   pendFacturar = paraFacturar.map(v => v.id);
 
   renderVales('lista-com', vales, 'com');
@@ -694,9 +851,9 @@ async function canjearVale() {
 //  COMERCIO — FACTURAR
 // ══════════════════════════════════════════════
 function confirmarFacturar() {
-  if (!pendFacturar.length) { alert('No hay vales canjeados para marcar como facturados en este período.'); return; }
+  if (!pendFacturar.length) { alert('No hay vales canjeados para marcar en este período.'); return; }
   document.getElementById('modal-body').textContent =
-    `Se marcarán ${pendFacturar.length} vale(s) como facturados. Ya no aparecerán en el listado normal. ¿Confirmar?`;
+    `Se marcarán ${pendFacturar.length} vale(s) como facturados. ¿Confirmar?`;
   document.getElementById('modal').classList.add('show');
 }
 function cerrarModal() { document.getElementById('modal').classList.remove('show'); }
@@ -723,9 +880,9 @@ async function cargarValesFin() {
   document.getElementById('lista-fin').innerHTML = '<p class="loading">Cargando...</p>';
   const res = await api({
     accion: 'getVales',
-    desde: document.getElementById('fin-desde').value,
-    hasta: document.getElementById('fin-hasta').value,
-    estado: document.getElementById('fin-estado').value,
+    desde:    document.getElementById('fin-desde').value,
+    hasta:    document.getElementById('fin-hasta').value,
+    estado:   document.getElementById('fin-estado').value,
     comercio: document.getElementById('fin-comercio').value,
   });
   if (!res.ok) { document.getElementById('lista-fin').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
@@ -747,16 +904,15 @@ function renderVales(containerId, vales, ctx) {
 
   cont.innerHTML = '<div class="vale-list">' + vales.map(v => {
     const areaBadge = v.tipo === 'area' ? ' <span class="badge b-area">Área</span>' : '';
+    const dniExtra = (ctx !== 'com' && v.dni) ? ` <span style="font-size:12px;color:var(--text2);">· DNI ${v.dni}</span>` : '';
     let sub = '';
     if (ctx === 'com') {
       sub = (v.dni ? 'DNI: ' + v.dni + ' · ' : '') + 'Canjeado: ' + fmtF(v.fechaCanje);
     } else {
-      const nomCom = (config.comercios || []).find(c => c.id === v.comercioId)?.nombre || v.comercioNombre || v.comercioId;
+      const nomCom = (config.comercios||[]).find(c=>c.id===v.comercioId)?.nombre || v.comercioNombre || v.comercioId;
       sub = nomCom + ' · ' + fmtF(v.fecha);
       if (v.fechaCanje) sub += ' · Canjeado: ' + fmtF(v.fechaCanje);
     }
-    const dniExtra = (ctx !== 'com' && v.dni) ? ` <span style="font-size:12px;color:var(--text2);">· DNI ${v.dni}</span>` : '';
-
     return `<div class="vale-item">
       <div class="vale-info">
         <p class="vale-id">${v.id}</p>

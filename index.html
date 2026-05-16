@@ -791,16 +791,18 @@ async function enviarPorWhatsApp(vale) {
   // 5. Exportar
   canvas.toBlob(async blob => {
     const file = new File([blob], `vale-${vale.id}.jpg`, { type: 'image/jpeg' });
-    // Web Share API (móvil)
-    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+
+    // Web Share API solo en móvil (en escritorio abre la app de WhatsApp, no queremos eso)
+    const esMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+    if (esMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file], title: `Vale ${vale.id}` }); return; } catch(e) {}
     }
-    // Descargar imagen
+
+    // Escritorio: descargar imagen + mostrar modal con link a WhatsApp Web
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `vale-${vale.id}.jpg`; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
 
-    // Armar link WhatsApp Web
     const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
     const msg = encodeURIComponent(
       `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n` +
@@ -812,7 +814,6 @@ async function enviarPorWhatsApp(vale) {
       ? `https://web.whatsapp.com/send?phone=549${tel}&text=${msg}`
       : `https://web.whatsapp.com/`;
 
-    // Mostrar modal con instrucciones
     document.getElementById('wsp-modal-link').href = waUrl;
     document.getElementById('wsp-modal').classList.add('show');
   }, 'image/jpeg', 0.95);

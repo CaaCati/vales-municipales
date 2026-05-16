@@ -669,11 +669,8 @@ async function enviarPorWhatsApp(vale) {
     check();
   });
 
-  // 2. Cargar logo y firma en paralelo
-  const [logoImg, firmaImg] = await Promise.all([
-    cargarImagen('logo-municipio.png').catch(() => null),
-    cargarImagen(FIRMAS[vale.firmante] || FIRMAS.villalba).catch(() => null),
-  ]);
+  // 2. Cargar firma (sin logo en la imagen de WhatsApp)
+  const firmaImg = await cargarImagen(FIRMAS[vale.firmante] || FIRMAS.villalba).catch(() => null);
 
   // Calcular dimensiones proporcionales de la firma (max 200px ancho, proporcional alto)
   let firmaDrawW = 0, firmaDrawH = 0;
@@ -710,10 +707,9 @@ async function enviarPorWhatsApp(vale) {
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, TOTAL_H);
 
-  // Header naranja
+  // Header naranja (sin logo para evitar problemas de CORS en móvil)
   ctx.fillStyle = '#E8670A';
   ctx.fillRect(0, 0, W, headerH);
-  if (logoImg) ctx.drawImage(logoImg, 18, 10, 72, 72);
   ctx.fillStyle = '#ffffff';
   ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
   ctx.fillText('MUNICIPALIDAD DE CAÁ CATÍ — CORRIENTES', W/2, 36);
@@ -788,35 +784,47 @@ async function enviarPorWhatsApp(vale) {
 
   qrHidden.innerHTML = '';
 
-  // 5. Exportar
-  canvas.toBlob(async blob => {
-    const file = new File([blob], `vale-${vale.id}.jpg`, { type: 'image/jpeg' });
-
-    // Web Share API solo en móvil (en escritorio abre la app de WhatsApp, no queremos eso)
-    const esMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-    if (esMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], title: `Vale ${vale.id}` }); return; } catch(e) {}
+  // 5. Exportar — manejar canvas contaminado por CORS
+  let blob;
+  try {
+    blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(), 'image/jpeg', 0.95));
+  } catch(e) {
+    // Canvas contaminado (CORS): regenerar sin firma y exportar
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect((W - firmaDrawW) / 2, canvas.height/ESCALA - firmaDrawH - 60, firmaDrawW + 10, firmaDrawH + 20);
+    try {
+      blob = await new Promise((res, rej) => canvas.toBlob(b => b ? res(b) : rej(), 'image/jpeg', 0.95));
+    } catch(e2) {
+      alert('No se pudo generar la imagen. Usá la opción de imprimir en su lugar.'); return;
     }
+  }
 
-    // Escritorio: descargar imagen + mostrar modal con link a WhatsApp Web
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `vale-${vale.id}.jpg`; a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  const file = new File([blob], `vale-${vale.id}.jpg`, { type: 'image/jpeg' });
 
-    const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
-    const msg = encodeURIComponent(
-      `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n` +
-      `Código: *${vale.id}*\nBeneficiario: ${vale.destinatario}\n` +
-      `Comercio: ${vale.comercioNombre}\nMonto: ${fmt$(vale.monto)}\nFecha: ${fmtF(vale.fecha)}\n\n` +
-      `Adjunto la imagen del vale con el QR.`
-    );
-    const waUrl = tel
-      ? `https://web.whatsapp.com/send?phone=549${tel}&text=${msg}`
-      : `https://web.whatsapp.com/`;
+  // Móvil: Web Share API
+  const esMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+  if (esMobile && navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+    try { await navigator.share({ files: [file], title: `Vale ${vale.id}` }); return; } catch(e) {}
+  }
 
-    document.getElementById('wsp-modal-link').href = waUrl;
-    document.getElementById('wsp-modal').classList.add('show');
-  }, 'image/jpeg', 0.95);
+  // Escritorio: descargar + modal WhatsApp Web
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = `vale-${vale.id}.jpg`; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+  const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
+  const msg = encodeURIComponent(
+    `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n` +
+    `Código: *${vale.id}*\nBeneficiario: ${vale.destinatario}\n` +
+    `Comercio: ${vale.comercioNombre}\nMonto: ${fmt$(vale.monto)}\nFecha: ${fmtF(vale.fecha)}\n\n` +
+    `Adjunto la imagen del vale con el QR.`
+  );
+  const waUrl = tel
+    ? `https://web.whatsapp.com/send?phone=549${tel}&text=${msg}`
+    : `https://web.whatsapp.com/`;
+
+  document.getElementById('wsp-modal-link').href = waUrl;
+  document.getElementById('wsp-modal').classList.add('show');
 }
 
 function cargarImagen(src) {

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sistema de Vales — Municipalidad de Caá Catí</title>
+<style>
+  :root {
+    --brand: #185FA5;
+    --brand-light: #E6F1FB;
+    --brand-dark: #0C447C;
+    --green: #0F6E56;
+    --green-light: #EAF3DE;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --red-light: #FCEBEB;
+    --red: #A32D2D;
+    --purple: #3C3489;
+    --purple-light: #EEEDFE;
+    --bg: #ffffff;
+    --bg2: #f5f5f3;
+    --border: rgba(0,0,0,0.12);
+    --text: #1a1a18;
+    --text2: #5f5e5a;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); font-size: 15px; min-height: 100vh; }
+
+  /* ── LOGIN ── */
+  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
+  .login-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 340px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+  .login-logo { width: 52px; height: 52px; background: var(--brand-light); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 26px; }
+  .login-title { font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+  .login-sub { font-size: 13px; color: var(--text2); text-align: center; margin-bottom: 1.5rem; }
+  .login-label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 4px; }
+  .login-input { width: 100%; padding: 0.55rem 0.75rem; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; background: var(--bg); color: var(--text); margin-bottom: 1rem; }
+  .login-input:focus { outline: none; border-color: var(--brand); }
+  .btn-login { width: 100%; background: var(--brand); color: white; border: none; border-radius: var(--radius-sm); padding: 0.6rem; font-size: 15px; font-weight: 500; cursor: pointer; }
+  .btn-login:hover { background: var(--brand-dark); }
+  .login-error { font-size: 12px; color: var(--red); text-align: center; margin-top: 0.5rem; min-height: 18px; }
+
+  /* ── LAYOUT ── */
+  .panel { display: none; max-width: 720px; margin: 0 auto; padding: 1rem; }
+  .panel.active { display: block; }
+
+  /* ── TOPBAR ── */
+  .topbar { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 1rem; }
+  .topbar-left { display: flex; align-items: center; gap: 8px; }
+  .topbar-icon { font-size: 20px; }
+  .topbar-name { font-size: 14px; font-weight: 600; }
+  .badge-readonly { font-size: 11px; background: var(--brand-light); color: var(--brand); padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .logout-btn { font-size: 12px; color: var(--text2); background: none; border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 4px 10px; cursor: pointer; }
+  .logout-btn:hover { color: var(--text); border-color: #aaa; }
+
+  /* ── CARDS ── */
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
+
+  /* ── STATS ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+  .stat { background: var(--bg2); border-radius: var(--radius-sm); padding: 0.875rem; text-align: center; }
+  .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
+  .stat-num { font-size: 24px; font-weight: 600; }
+  .stat-num.blue { color: var(--brand); }
+  .stat-num.green { color: var(--green); }
+  .stat-num.amber { color: var(--amber); }
+
+  /* ── FORMS ── */
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  .form-row-1 { margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 12px; color: var(--text2); }
+  input[type=text], input[type=number], input[type=date], select, input[type=password] {
+    padding: 0.5rem 0.65rem; border: 0.5px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 14px; background: var(--bg); color: var(--text); width: 100%;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--brand); }
+
+  /* ── TIPO TOGGLE ── */
+  .tipo-toggle { display: flex; border: 0.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 12px; }
+  .tipo-btn { flex: 1; padding: 0.45rem; font-size: 13px; cursor: pointer; background: none; border: none; color: var(--text2); }
+  .tipo-btn.active { background: var(--brand); color: white; font-weight: 500; }
+
+  /* ── BUTTONS ── */
+  .btn-primary { background: var(--brand); color: white; border: none; border-radius: var(--radius-sm); padding: 0.55rem 1.25rem; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .btn-primary:hover { background: var(--brand-dark); }
+  .btn-success { background: var(--green); color: white; border: none; border-radius: var(--radius-sm); padding: 0.55rem 1.25rem; font-size: 14px; font-weight: 500; cursor: pointer; }
+  .btn-success:hover { background: #085041; }
+  .btn-secondary { background: none; border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.5rem 1rem; font-size: 13px; cursor: pointer; color: var(--text); }
+  .btn-secondary:hover { background: var(--bg2); }
+  .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1rem; }
+
+  /* ── FILTERS ── */
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
+  .filter-row input, .filter-row select { flex: 1; min-width: 130px; }
+
+  /* ── VALE LIST ── */
+  .vale-list { display: flex; flex-direction: column; gap: 8px; }
+  .vale-item { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.875rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .vale-item:hover { border-color: #aaa; }
+  .vale-info { flex: 1; min-width: 0; }
+  .vale-id { font-size: 11px; color: var(--text2); font-family: monospace; margin-bottom: 2px; }
+  .vale-dest { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vale-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+  .vale-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+  .vale-monto { font-size: 15px; font-weight: 600; }
+  .empty-msg { font-size: 13px; color: var(--text2); text-align: center; padding: 1.5rem 0; }
+
+  /* ── BADGES ── */
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+  .b-pendiente { background: var(--amber-light); color: #633806; }
+  .b-canjeado  { background: var(--green-light); color: #27500A; }
+  .b-facturado { background: var(--purple-light); color: var(--purple); }
+  .b-area      { background: var(--brand-light); color: var(--brand-dark); }
+
+  /* ── CANJEAR ── */
+  .canjear-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 1rem; }
+  .canjear-row .form-group { flex: 1; }
+  .alert { padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 0.75rem; display: none; align-items: center; gap: 8px; }
+  .alert.show { display: flex; }
+  .alert-ok  { background: var(--green-light); color: #27500A; border: 0.5px solid #97C459; }
+  .alert-err { background: var(--red-light); color: var(--red); border: 0.5px solid #F09595; }
+
+  /* ── EXPORT BAR ── */
+  .export-bar { background: var(--bg2); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem; }
+  .export-bar-title { font-size: 13px; font-weight: 500; margin-bottom: 0.75rem; }
+  .export-bar-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+  .export-bar-row .form-group { flex: 1; min-width: 110px; }
+  .total-tag { font-size: 13px; font-weight: 600; background: var(--brand-light); color: var(--brand); padding: 0.5rem 0.875rem; border-radius: var(--radius-sm); white-space: nowrap; align-self: flex-end; }
+  .export-extra { margin-top: 10px; font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+
+  /* ── MODAL ── */
+  .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-bg.show { display: flex; }
+  .modal { background: var(--bg); border-radius: var(--radius); padding: 1.5rem; max-width: 340px; width: 100%; }
+  .modal-title { font-size: 15px; font-weight: 600; margin-bottom: 0.5rem; }
+  .modal-body { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 1.25rem; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+  /* ── LOADING ── */
+  .loading { text-align: center; padding: 1.5rem; color: var(--text2); font-size: 13px; }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(3, 1fr); }
+    .stat-num { font-size: 20px; }
+    .form-row { grid-template-columns: 1fr; }
+    .export-bar-row { flex-direction: column; }
+    .total-tag { align-self: stretch; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ LOGIN ═══ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">🎫</div>
+    <p class="login-title">Sistema de Vales</p>
+    <p class="login-sub">Municipalidad de Caá Catí</p>
+    <label class="login-label">Contraseña</label>
+    <input type="password" id="login-pass" class="login-input" placeholder="••••••••" autocomplete="current-password" />
+    <button class="btn-login" onclick="doLogin()">Ingresar</button>
+    <p class="login-error" id="login-error"></p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ PANEL SECRETARÍA ═══ -->
+<div id="panel-secretaria" class="panel">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-icon">🎫</span>
+      <span class="topbar-name">Secretaría General de Gobierno</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Salir</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat"><p class="stat-label">Emitidos hoy</p><p class="stat-num blue" id="s-hoy">—</p></div>
+    <div class="stat"><p class="stat-label">Pendientes</p><p class="stat-num amber" id="s-pend">—</p></div>
+    <div class="stat"><p class="stat-label">Canjeados (mes)</p><p class="stat-num green" id="s-canj">—</p></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Emitir nuevo vale</p>
+    <div class="form-row-1">
+      <p class="form-label" style="margin-bottom:6px;">Tipo de destinatario</p>
+      <div class="tipo-toggle">
+        <button class="tipo-btn active" id="btn-persona" onclick="setTipo('persona')">👤 Persona</button>
+        <button class="tipo-btn" id="btn-area" onclick="setTipo('area')">🏛️ Área municipal</button>
+      </div>
+    </div>
+    <div id="campos-persona">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nombre completo</label><input type="text" id="n-benef" placeholder="Ej: María González" /></div>
+        <div class="form-group"><label class="form-label">DNI</label><input type="text" id="n-dni" placeholder="12.345.678" /></div>
+      </div>
+    </div>
+    <div id="campos-area" style="display:none;">
+      <div class="form-row-1">
+        <div class="form-group"><label class="form-label">Área municipal</label>
+          <select id="n-area"><option value="">Seleccionar área...</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Comercio</label>
+        <select id="n-comercio"><option value="">Seleccionar...</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Monto ($)</label><input type="number" id="n-monto" placeholder="15000" min="1" /></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Enviar por</label>
+        <select id="n-envio" onchange="toggleWsp()">
+          <option value="imprimir">Imprimir voucher</option>
+          <option value="whatsapp">WhatsApp</option>
+        </select>
+      </div>
+      <div class="form-group" id="wsp-group" style="display:none;"><label class="form-label">Teléfono</label><input type="text" id="n-tel" placeholder="3794 xxxxxx" /></div>
+    </div>
+    <div class="btn-row"><button class="btn-success" onclick="emitirVale()">＋ Emitir vale</button></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Vales emitidos</p>
+    <div class="filter-row">
+      <input type="date" id="sec-desde" onchange="cargarValesSec()" title="Desde" />
+      <input type="date" id="sec-hasta" onchange="cargarValesSec()" title="Hasta" />
+      <select id="sec-estado" onchange="cargarValesSec()">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendientes</option>
+        <option value="canjeado">Canjeados</option>
+        <option value="facturado">Facturados</option>
+      </select>
+      <select id="sec-comercio" onchange="cargarValesSec()">
+        <option value="">Todos los comercios</option>
+      </select>
+    </div>
+    <div id="lista-sec"><p class="loading">Cargando...</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ PANEL COMERCIO ═══ -->
+<div id="panel-comercio" class="panel">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-icon">🏪</span>
+      <span class="topbar-name" id="comercio-topbar">Comercio</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Salir</button>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Canjear vale</p>
+    <div class="canjear-row">
+      <div class="form-group">
+        <label class="form-label">Código del vale</label>
+        <input type="text" id="canj-codigo" placeholder="Ej: VAL-2026-0003" style="font-family:monospace;text-transform:uppercase;letter-spacing:0.5px;" />
+      </div>
+      <button class="btn-success" onclick="canjearVale()">Canjear</button>
+    </div>
+    <div class="alert alert-ok" id="alert-ok">✅ <span id="alert-ok-msg"></span></div>
+    <div class="alert alert-err" id="alert-err">❌ <span id="alert-err-msg"></span></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Mis vales para facturar</p>
+    <div class="export-bar">
+      <p class="export-bar-title">Filtrar por fecha de canje</p>
+      <div class="export-bar-row">
+        <div class="form-group"><label class="form-label">Desde</label><input type="date" id="com-desde" onchange="cargarValesCom()" /></div>
+        <div class="form-group"><label class="form-label">Hasta</label><input type="date" id="com-hasta" onchange="cargarValesCom()" /></div>
+        <div class="total-tag" id="com-total">Por facturar: $0</div>
+        <button class="btn-secondary" onclick="confirmarFacturar()">🖨️ Exportar y marcar facturado</button>
+      </div>
+      <label class="export-extra">
+        <input type="checkbox" id="ver-facturados" onchange="cargarValesCom()" /> Mostrar también los ya facturados
+      </label>
+    </div>
+    <div id="lista-com"><p class="loading">Cargando...</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ PANEL FINANZAS ═══ -->
+<div id="panel-finanzas" class="panel">
+  <div class="topbar">
+    <div class="topbar-left">
+      <span class="topbar-icon">📊</span>
+      <span class="topbar-name">Finanzas</span>
+      <span class="badge-readonly">Solo lectura</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Salir</button>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat"><p class="stat-label">Emitido (mes)</p><p class="stat-num blue" id="f-emit">—</p></div>
+    <div class="stat"><p class="stat-label">Canjeado (mes)</p><p class="stat-num green" id="f-canj">—</p></div>
+    <div class="stat"><p class="stat-label">Pendiente</p><p class="stat-num amber" id="f-pend">—</p></div>
+  </div>
+
+  <div class="card">
+    <p class="card-title">Todos los vales</p>
+    <div class="filter-row">
+      <input type="date" id="fin-desde" onchange="cargarValesFin()" title="Desde" />
+      <input type="date" id="fin-hasta" onchange="cargarValesFin()" title="Hasta" />
+      <select id="fin-estado" onchange="cargarValesFin()">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">Pendientes</option>
+        <option value="canjeado">Canjeados</option>
+        <option value="facturado">Facturados</option>
+      </select>
+      <select id="fin-comercio" onchange="cargarValesFin()">
+        <option value="">Todos los comercios</option>
+      </select>
+    </div>
+    <div id="lista-fin"><p class="loading">Cargando...</p></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════ MODAL ═══ -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <p class="modal-title">Marcar como facturados</p>
+    <p class="modal-body" id="modal-body"></p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-success" onclick="ejecutarFacturar()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIGURACIÓN — pegá tu URL de Apps Script acá
+// ══════════════════════════════════════════════
+const API = 'https://script.google.com/macros/s/AKfycbxqIqtNSFFVz1AHAMqYCIHWAzoGV6CZ4KbbkwSKVQd23pANFe2F6O_i6foHFnnb1i30PA/exec';
+
+// ══════════════════════════════════════════════
+//  ESTADO GLOBAL
+// ══════════════════════════════════════════════
+let sesion = null;         // { rol, nombre, comercioId, comercioNombre }
+let config = {};           // { areas, comercios }
+let pendFacturar = [];     // IDs a marcar como facturados
+let pass = '';             // guardado para re-enviar en cada request
+
+// ══════════════════════════════════════════════
+//  API HELPER
+// ══════════════════════════════════════════════
+async function api(params) {
+  const qs = new URLSearchParams({ ...params, pass });
+  try {
+    const r = await fetch(API + '?' + qs);
+    return await r.json();
+  } catch (e) {
+    return { ok: false, error: 'Error de conexión. Revisá tu internet.' };
+  }
+}
+
+// ══════════════════════════════════════════════
+//  FORMATOS
+// ══════════════════════════════════════════════
+function fmt$(n) { return '$' + Number(n).toLocaleString('es-AR'); }
+function fmtF(iso) {
+  if (!iso) return '';
+  const p = iso.toString().split('-');
+  return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0] : iso;
+}
+
+// ══════════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════════
+async function doLogin() {
+  const p = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  err.textContent = '';
+  if (!p) { err.textContent = 'Ingresá tu contraseña.'; return; }
+
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = 'Verificando...'; btn.disabled = true;
+
+  pass = p;
+  const res = await api({ accion: 'login' });
+
+  btn.textContent = 'Ingresar'; btn.disabled = false;
+
+  if (!res.ok) { err.textContent = res.error || 'Contraseña incorrecta.'; pass = ''; return; }
+
+  sesion = res;
+
+  // Cargar config (áreas y comercios)
+  const cfg = await api({ accion: 'getConfig' });
+  if (cfg.ok) {
+    config = cfg;
+    poblarSelectores();
+  }
+
+  document.getElementById('login-screen').style.display = 'none';
+
+  if (res.rol === 'secretaria') {
+    mostrarPanel('panel-secretaria');
+    cargarStatsSec();
+    cargarValesSec();
+  } else if (res.rol === 'finanzas') {
+    mostrarPanel('panel-finanzas');
+    cargarStatsFin();
+    cargarValesFin();
+  } else if (res.rol === 'comercio') {
+    document.getElementById('comercio-topbar').textContent = res.comercioNombre || res.nombre;
+    mostrarPanel('panel-comercio');
+    cargarValesCom();
+  }
+}
+
+function poblarSelectores() {
+  const areas = config.areas || [];
+  const comercios = config.comercios || [];
+
+  const selArea = document.getElementById('n-area');
+  selArea.innerHTML = '<option value="">Seleccionar área...</option>';
+  areas.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; selArea.appendChild(o); });
+
+  [document.getElementById('n-comercio'), document.getElementById('sec-comercio'), document.getElementById('fin-comercio')].forEach(sel => {
+    const isFilter = sel.id !== 'n-comercio';
+    const opt0 = isFilter ? '<option value="">Todos los comercios</option>' : '<option value="">Seleccionar...</option>';
+    sel.innerHTML = opt0;
+    comercios.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nombre; sel.appendChild(o); });
+  });
+}
+
+function mostrarPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function logout() {
+  sesion = null; pass = '';
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').textContent = '';
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+// ══════════════════════════════════════════════
+//  SECRETARÍA — STATS
+// ══════════════════════════════════════════════
+async function cargarStatsSec() {
+  const res = await api({ accion: 'getStats' });
+  if (!res.ok) return;
+  document.getElementById('s-hoy').textContent = res.emitidosHoy;
+  document.getElementById('s-pend').textContent = res.pendientes;
+  document.getElementById('s-canj').textContent = res.canjeadosMes;
+}
+
+// ══════════════════════════════════════════════
+//  SECRETARÍA — LISTA VALES
+// ══════════════════════════════════════════════
+async function cargarValesSec() {
+  document.getElementById('lista-sec').innerHTML = '<p class="loading">Cargando...</p>';
+  const params = {
+    accion: 'getVales',
+    desde: document.getElementById('sec-desde').value,
+    hasta: document.getElementById('sec-hasta').value,
+    estado: document.getElementById('sec-estado').value,
+    comercio: document.getElementById('sec-comercio').value,
+  };
+  const res = await api(params);
+  if (!res.ok) { document.getElementById('lista-sec').innerHTML = '<p class="empty-msg">Error: ' + res.error + '</p>'; return; }
+  renderVales('lista-sec', res.vales, 'sec');
+}
+
+// ══════════════════════════════════════════════
+//  SECRETARÍA — EMITIR
+// ══════════════════════════════════════════════
+let tipoDestinatario = 'persona';
+
+function setTipo(t) {
+  tipoDestinatario = t;
+  document.getElementById('campos-persona').style.display = t === 'persona' ? 'block' : 'none';
+  document.getElementById('campos-area').style.display = t === 'area' ? 'block' : 'none';
+  document.getElementById('btn-persona').classList.toggle('active', t === 'persona');
+  document.getElementById('btn-area').classList.toggle('active', t === 'area');
+}
+
+function toggleWsp() {
+  document.getElementById('wsp-group').style.display = document.getElementById('n-envio').value === 'whatsapp' ? 'block' : 'none';
+}
+
+async function emitirVale() {
+  const comercioId = document.getElementById('n-comercio').value;
+  const monto = document.getElementById('n-monto').value;
+  let destinatario = '', dni = '';
+
+  if (tipoDestinatario === 'persona') {
+    destinatario = document.getElementById('n-benef').value.trim();
+    dni = document.getElementById('n-dni').value.trim();
+    if (!destinatario) { alert('Ingresá el nombre del beneficiario.'); return; }
+  } else {
+    destinatario = document.getElementById('n-area').value;
+    if (!destinatario) { alert('Seleccioná un área.'); return; }
+  }
+  if (!comercioId) { alert('Seleccioná un comercio.'); return; }
+  if (!monto || Number(monto) <= 0) { alert('Ingresá un monto válido.'); return; }
+
+  const btn = document.querySelector('#panel-secretaria .btn-success');
+  btn.textContent = 'Emitiendo...'; btn.disabled = true;
+
+  const res = await api({ accion: 'emitirVale', tipo: tipoDestinatario, destinatario, dni, comercioId, monto });
+
+  btn.textContent = '＋ Emitir vale'; btn.disabled = false;
+
+  if (!res.ok) { alert('Error: ' + res.error); return; }
+
+  document.getElementById('n-benef').value = '';
+  document.getElementById('n-dni').value = '';
+  document.getElementById('n-area').value = '';
+  document.getElementById('n-comercio').value = '';
+  document.getElementById('n-monto').value = '';
+
+  const envio = document.getElementById('n-envio').value;
+  alert('Vale ' + res.id + ' creado correctamente.\n' + (envio === 'imprimir' ? '(Imprimí el voucher para el beneficiario)' : '(Enviá el código por WhatsApp)'));
+
+  cargarStatsSec();
+  cargarValesSec();
+}
+
+// ══════════════════════════════════════════════
+//  COMERCIO — LISTA
+// ══════════════════════════════════════════════
+async function cargarValesCom() {
+  document.getElementById('lista-com').innerHTML = '<p class="loading">Cargando...</p>';
+  const desde = document.getElementById('com-desde').value;
+  const hasta = document.getElementById('com-hasta').value;
+  const verFact = document.getElementById('ver-facturados').checked;
+
+  const res = await api({ accion: 'getVales', desde, hasta });
+  if (!res.ok) { document.getElementById('lista-com').innerHTML = '<p class="empty-msg">Error: ' + res.error + '</p>'; return; }
+
+  let vales = res.vales.filter(v => v.estado !== 'pendiente');
+  if (!verFact) vales = vales.filter(v => v.estado !== 'facturado');
+
+  // Filtrar por fecha de canje si hay rango
+  if (desde || hasta) {
+    vales = vales.filter(v => {
+      const f = v.fechaCanje || v.fecha;
+      if (desde && f < desde) return false;
+      if (hasta && f > hasta) return false;
+      return true;
+    });
+  }
+
+  const paraFacturar = vales.filter(v => v.estado === 'canjeado');
+  const total = paraFacturar.reduce((s, v) => s + v.monto, 0);
+  document.getElementById('com-total').textContent = 'Por facturar: ' + fmt$(total);
+  pendFacturar = paraFacturar.map(v => v.id);
+
+  renderVales('lista-com', vales, 'com');
+}
+
+// ══════════════════════════════════════════════
+//  COMERCIO — CANJEAR
+// ══════════════════════════════════════════════
+async function canjearVale() {
+  const codigo = document.getElementById('canj-codigo').value.trim().toUpperCase();
+  const aOk = document.getElementById('alert-ok');
+  const aErr = document.getElementById('alert-err');
+  aOk.classList.remove('show'); aErr.classList.remove('show');
+  if (!codigo) return;
+
+  const res = await api({ accion: 'canjearVale', codigo });
+
+  if (!res.ok) {
+    document.getElementById('alert-err-msg').textContent = res.error;
+    aErr.classList.add('show'); return;
+  }
+
+  document.getElementById('alert-ok-msg').textContent = 'Canjeado: ' + res.destinatario + ' · ' + fmt$(res.monto);
+  aOk.classList.add('show');
+  document.getElementById('canj-codigo').value = '';
+  cargarValesCom();
+}
+
+// ══════════════════════════════════════════════
+//  COMERCIO — FACTURAR
+// ══════════════════════════════════════════════
+function confirmarFacturar() {
+  if (!pendFacturar.length) { alert('No hay vales canjeados para marcar como facturados en este período.'); return; }
+  document.getElementById('modal-body').textContent =
+    'Se marcarán ' + pendFacturar.length + ' vale(s) como facturados. ' +
+    'Ya no aparecerán en el listado normal. ¿Confirmar?';
+  document.getElementById('modal').classList.add('show');
+}
+
+function cerrarModal() { document.getElementById('modal').classList.remove('show'); }
+
+async function ejecutarFacturar() {
+  cerrarModal();
+  const res = await api({ accion: 'marcarFacturado', ids: pendFacturar.join(',') });
+  if (!res.ok) { alert('Error: ' + res.error); return; }
+  alert(res.marcados + ' vale(s) marcados como facturados.');
+  cargarValesCom();
+}
+
+// ══════════════════════════════════════════════
+//  FINANZAS — STATS Y LISTA
+// ══════════════════════════════════════════════
+async function cargarStatsFin() {
+  const res = await api({ accion: 'getStats' });
+  if (!res.ok) return;
+  document.getElementById('f-emit').textContent = fmt$(res.totalEmitido);
+  document.getElementById('f-canj').textContent = fmt$(res.totalCanjeado);
+  document.getElementById('f-pend').textContent = fmt$(res.totalPendiente);
+}
+
+async function cargarValesFin() {
+  document.getElementById('lista-fin').innerHTML = '<p class="loading">Cargando...</p>';
+  const res = await api({
+    accion: 'getVales',
+    desde: document.getElementById('fin-desde').value,
+    hasta: document.getElementById('fin-hasta').value,
+    estado: document.getElementById('fin-estado').value,
+    comercio: document.getElementById('fin-comercio').value,
+  });
+  if (!res.ok) { document.getElementById('lista-fin').innerHTML = '<p class="empty-msg">Error: ' + res.error + '</p>'; return; }
+  renderVales('lista-fin', res.vales, 'fin');
+}
+
+// ══════════════════════════════════════════════
+//  RENDER VALES (compartido)
+// ══════════════════════════════════════════════
+function renderVales(containerId, vales, ctx) {
+  const cont = document.getElementById(containerId);
+  if (!vales.length) { cont.innerHTML = '<p class="empty-msg">No hay vales para mostrar.</p>'; return; }
+
+  const badgeEstado = e => {
+    if (e === 'pendiente') return '<span class="badge b-pendiente">Pendiente</span>';
+    if (e === 'canjeado')  return '<span class="badge b-canjeado">Canjeado</span>';
+    return '<span class="badge b-facturado">Facturado</span>';
+  };
+
+  cont.innerHTML = '<div class="vale-list">' + vales.map(v => {
+    const areaBadge = v.tipo === 'area' ? ' <span class="badge b-area">Área</span>' : '';
+    const dniTxt = v.dni ? ' · DNI ' + v.dni : '';
+    let sub = '';
+    if (ctx === 'com') {
+      sub = (v.dni ? 'DNI: ' + v.dni + ' · ' : '') + 'Canjeado: ' + fmtF(v.fechaCanje);
+    } else {
+      sub = (config.comercios || []).find(c => c.id === v.comercioId)?.nombre || v.comercioNombre || v.comercioId;
+      sub += ' · ' + fmtF(v.fecha);
+      if (v.fechaCanje) sub += ' · Canjeado: ' + fmtF(v.fechaCanje);
+    }
+
+    return `<div class="vale-item">
+      <div class="vale-info">
+        <p class="vale-id">${v.id}</p>
+        <p class="vale-dest">${v.destinatario}${areaBadge}${ctx !== 'com' && v.dni ? '<span style="font-size:12px;color:var(--text2);"> · DNI ' + v.dni + '</span>' : ''}</p>
+        <p class="vale-sub">${sub}</p>
+      </div>
+      <div class="vale-right">
+        <span class="vale-monto">${fmt$(v.monto)}</span>
+        ${badgeEstado(v.estado)}
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+</script>
+</body>
+</html>

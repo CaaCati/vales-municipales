@@ -349,6 +349,32 @@
   </div>
 </div>
 
+<!-- MODAL WHATSAPP -->
+<div class="modal-bg" id="wsp-modal">
+  <div class="modal" style="max-width:400px;">
+    <p class="modal-title">📲 Enviar por WhatsApp</p>
+    <div style="background:var(--green-light);border-radius:var(--radius-sm);padding:0.875rem;margin-bottom:1rem;">
+      <p style="font-size:13px;font-weight:600;color:var(--green);margin-bottom:6px;">✅ Imagen descargada</p>
+      <p style="font-size:12px;color:#27500A;line-height:1.6;">La imagen del vale se descargó en tu carpeta de <strong>Descargas</strong>.</p>
+    </div>
+    <p style="font-size:13px;font-weight:500;margin-bottom:8px;">Pasos para enviar:</p>
+    <ol style="font-size:13px;color:var(--text2);line-height:2;padding-left:1.25rem;">
+      <li>Hacé clic en <strong>"Abrir WhatsApp Web"</strong></li>
+      <li>En el chat, hacé clic en el 📎 (adjuntar)</li>
+      <li>Seleccioná la imagen de tu carpeta Descargas</li>
+      <li>Enviá</li>
+    </ol>
+    <div class="modal-actions" style="margin-top:1.25rem;">
+      <button class="btn-secondary" onclick="document.getElementById('wsp-modal').classList.remove('show')">Cerrar</button>
+      <a id="wsp-modal-link" href="#" target="_blank" class="btn-primary"
+         onclick="setTimeout(()=>document.getElementById('wsp-modal').classList.remove('show'),500)"
+         style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">
+        💬 Abrir WhatsApp Web
+      </a>
+    </div>
+  </div>
+</div>
+
 <!-- VOUCHER IMPRIMIBLE -->
 <div id="voucher-overlay">
   <div id="voucher-wrap">
@@ -649,7 +675,17 @@ async function enviarPorWhatsApp(vale) {
     cargarImagen(FIRMAS[vale.firmante] || FIRMAS.villalba).catch(() => null),
   ]);
 
-  // 3. Calcular altura total antes de crear el canvas
+  // Calcular dimensiones proporcionales de la firma (max 200px ancho, proporcional alto)
+  let firmaDrawW = 0, firmaDrawH = 0;
+  if (firmaImg) {
+    const ratio = firmaImg.naturalHeight / firmaImg.naturalWidth;
+    firmaDrawW = Math.min(firmaImg.naturalWidth, 200);
+    firmaDrawH = Math.round(firmaDrawW * ratio);
+    if (firmaDrawH > 100) { firmaDrawH = 100; firmaDrawW = Math.round(100 / ratio); }
+  }
+
+  // 3. Calcular altura total
+  const ESCALA = 2; // Alta resolución 2x
   const W = 440;
   const datos = [
     ['Destinatario', vale.destinatario],
@@ -661,15 +697,16 @@ async function enviarPorWhatsApp(vale) {
   const headerH = 120;
   const montoH  = 76;
   const qrSize  = 200;
-  const firmaH  = firmaImg ? 90 : 0;
+  const firmaH  = firmaImg ? firmaDrawH + 20 : 0;
   const footerH = 40;
   const TOTAL_H = headerH + 20 + datosH + montoH + qrSize + 30 + firmaH + footerH + 20;
 
-  // 4. Crear canvas con tamaño exacto y fondo blanco desde el inicio
+  // 4. Crear canvas a 2x resolución
   const canvas = document.getElementById('wsp-canvas');
   const ctx = canvas.getContext('2d');
-  canvas.width  = W;
-  canvas.height = TOTAL_H;
+  canvas.width  = W * ESCALA;
+  canvas.height = TOTAL_H * ESCALA;
+  ctx.scale(ESCALA, ESCALA); // escalar todo el contexto
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, TOTAL_H);
 
@@ -720,25 +757,24 @@ async function enviarPorWhatsApp(vale) {
   ctx.fillText(fmt$(vale.monto), W/2, y + 36);
   y += 70;
 
-  // QR
+  // QR — renderizar en canvas offscreen para mayor nitidez
   if (qrEl) {
     try {
-      if (qrEl.tagName === 'CANVAS') {
-        ctx.drawImage(qrEl, (W-qrSize)/2, y, qrSize, qrSize);
-      } else {
-        const img = await cargarImagen(qrEl.src);
-        ctx.drawImage(img, (W-qrSize)/2, y, qrSize, qrSize);
-      }
+      const src = qrEl.tagName === 'CANVAS' ? qrEl : await cargarImagen(qrEl.src);
+      // Usar imageSmoothingEnabled false para que el QR quede nítido
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(src, (W-qrSize)/2, y, qrSize, qrSize);
+      ctx.imageSmoothingEnabled = true;
     } catch(e) {}
   }
   ctx.fillStyle = '#bbb'; ctx.font = '11px Arial'; ctx.textAlign = 'center';
   ctx.fillText('Escaneá el QR o ingresá el código en la app del comercio', W/2, y + qrSize + 16);
   y += qrSize + 28;
 
-  // Firma
-  if (firmaImg) {
-    ctx.drawImage(firmaImg, (W-180)/2, y, 180, 70);
-    y += 80;
+  // Firma — centrada, tamaño proporcional
+  if (firmaImg && firmaDrawW > 0) {
+    ctx.drawImage(firmaImg, (W - firmaDrawW)/2, y, firmaDrawW, firmaDrawH);
+    y += firmaDrawH + 10;
   }
 
   // Footer
@@ -759,22 +795,26 @@ async function enviarPorWhatsApp(vale) {
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file], title: `Vale ${vale.id}` }); return; } catch(e) {}
     }
-    // Fallback escritorio: descargar imagen + abrir WhatsApp Web
+    // Descargar imagen
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `vale-${vale.id}.jpg`; a.click();
-    URL.revokeObjectURL(url);
-    setTimeout(() => {
-      const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
-      const msg = encodeURIComponent(
-        `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n` +
-        `Código: *${vale.id}*\nBeneficiario: ${vale.destinatario}\n` +
-        `Comercio: ${vale.comercioNombre}\nMonto: ${fmt$(vale.monto)}\nFecha: ${fmtF(vale.fecha)}\n\n` +
-        `Adjunto la imagen del vale con el QR.`
-      );
-      // WhatsApp Web (no la app de escritorio)
-      const waUrl = (tel ? `https://web.whatsapp.com/send?phone=549${tel}` : `https://web.whatsapp.com/`) + `&text=${msg}`;
-      window.open(waUrl, '_blank');
-    }, 800);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+
+    // Armar link WhatsApp Web
+    const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
+    const msg = encodeURIComponent(
+      `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n` +
+      `Código: *${vale.id}*\nBeneficiario: ${vale.destinatario}\n` +
+      `Comercio: ${vale.comercioNombre}\nMonto: ${fmt$(vale.monto)}\nFecha: ${fmtF(vale.fecha)}\n\n` +
+      `Adjunto la imagen del vale con el QR.`
+    );
+    const waUrl = tel
+      ? `https://web.whatsapp.com/send?phone=549${tel}&text=${msg}`
+      : `https://web.whatsapp.com/`;
+
+    // Mostrar modal con instrucciones
+    document.getElementById('wsp-modal-link').href = waUrl;
+    document.getElementById('wsp-modal').classList.add('show');
   }, 'image/jpeg', 0.95);
 }
 

@@ -410,6 +410,7 @@ const FIRMAS = {
 //  ESTADO
 // ══════════════════════════════════════════════
 let sesion = null, config = {}, pendFacturar = [], pass = '';
+let _valesCache = {}; // cache id -> vale para re-imprimir
 
 // Deep link: si la URL tiene ?canjear=VAL-xxx
 window.addEventListener('load', () => {
@@ -523,6 +524,8 @@ async function cargarValesSec() {
   document.getElementById('lista-sec').innerHTML = '<p class="loading">Cargando...</p>';
   const res = await api({ accion: 'getVales', desde: document.getElementById('sec-desde').value, hasta: document.getElementById('sec-hasta').value, estado: document.getElementById('sec-estado').value, comercio: document.getElementById('sec-comercio').value });
   if (!res.ok) { document.getElementById('lista-sec').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
+  // Guardar en cache para poder re-imprimir
+  res.vales.forEach(v => { _valesCache[v.id] = v; });
   renderVales('lista-sec', res.vales, 'sec');
 }
 
@@ -616,166 +619,161 @@ function cerrarVoucher() {
 //  WHATSAPP — imagen vertical
 // ══════════════════════════════════════════════
 async function enviarPorWhatsApp(vale) {
-  // 1. Generar QR en div oculto separado (nunca el del voucher)
+  // 1. Generar QR en div oculto y esperar que el canvas esté listo de verdad
   const qrHidden = document.getElementById('wsp-qr-hidden');
   qrHidden.innerHTML = '';
-  await new Promise(resolve => {
-    new QRCode(qrHidden, {
-      text: APP_URL + '?canjear=' + vale.id,
-      width: 220, height: 220,
-      colorDark: '#E8670A', colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-    setTimeout(resolve, 500);
+  new QRCode(qrHidden, {
+    text: APP_URL + '?canjear=' + vale.id,
+    width: 220, height: 220,
+    colorDark: '#E8670A', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+  // Esperar hasta que el canvas/img del QR esté realmente disponible (poll)
+  const qrEl = await new Promise(resolve => {
+    let intentos = 0;
+    const check = () => {
+      const el = qrHidden.querySelector('canvas') || qrHidden.querySelector('img');
+      const listo = el && (el.tagName === 'CANVAS'
+        ? el.width > 0
+        : el.complete && el.naturalWidth > 0);
+      if (listo) { resolve(el); return; }
+      if (++intentos > 40) { resolve(null); return; } // timeout 2s
+      setTimeout(check, 50);
+    };
+    check();
   });
 
-  // 2. Obtener canvas/img del QR
-  const qrEl = qrHidden.querySelector('canvas') || qrHidden.querySelector('img');
+  // 2. Cargar logo y firma en paralelo
+  const [logoImg, firmaImg] = await Promise.all([
+    cargarImagen('logo-municipio.png').catch(() => null),
+    cargarImagen(FIRMAS[vale.firmante] || FIRMAS.villalba).catch(() => null),
+  ]);
 
-  // 3. Cargar logo
-  const logoImg = await cargarImagen('logo-municipio.png').catch(() => null);
-
-  // 4. Cargar firma
-  const firmaPath = FIRMAS[vale.firmante] || FIRMAS.villalba;
-  const firmaImg = await cargarImagen(firmaPath).catch(() => null);
-
-  // 5. Dibujar canvas vertical (400 x ~700)
+  // 3. Calcular altura total antes de crear el canvas
   const W = 440;
-  const canvas = document.getElementById('wsp-canvas');
-  const ctx = canvas.getContext('2d');
-  canvas.width = W;
-  canvas.height = 720;
-
-  // Fondo blanco
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, W, 720);
-
-  // Header naranja
-  ctx.fillStyle = '#E8670A';
-  ctx.fillRect(0, 0, W, 110);
-
-  // Logo en header
-  if (logoImg) {
-    ctx.drawImage(logoImg, 20, 12, 70, 70);
-  }
-
-  // Texto header
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 11px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('MUNICIPALIDAD DE CAÁ CATÍ — CORRIENTES', W/2, 38);
-  ctx.font = 'bold 30px Arial';
-  ctx.fillText('VALE MUNICIPAL', W/2, 78);
-
-  // ID del vale
-  ctx.fillStyle = '#FEF0E6';
-  ctx.beginPath();
-  const idW = 180, idH = 28, idX = (W - idW)/2, idY = 88;
-  ctx.roundRect ? ctx.roundRect(idX, idY, idW, idH, 6) : ctx.rect(idX, idY, idW, idH);
-  ctx.fill();
-  ctx.fillStyle = '#C45508';
-  ctx.font = 'bold 14px monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText(vale.id, W/2, 107);
-
-  // Línea separadora
-  ctx.strokeStyle = '#f0f0f0';
-  ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(30, 128); ctx.lineTo(W-30, 128); ctx.stroke();
-
-  // Datos
-  ctx.textAlign = 'left';
   const datos = [
     ['Destinatario', vale.destinatario],
     vale.dni ? ['DNI', vale.dni] : null,
     ['Comercio autorizado', vale.comercioNombre || '—'],
     ['Fecha de emisión', fmtF(vale.fecha)],
   ].filter(Boolean);
+  const datosH  = datos.length * 34;
+  const headerH = 120;
+  const montoH  = 76;
+  const qrSize  = 200;
+  const firmaH  = firmaImg ? 90 : 0;
+  const footerH = 40;
+  const TOTAL_H = headerH + 20 + datosH + montoH + qrSize + 30 + firmaH + footerH + 20;
 
-  let y = 158;
+  // 4. Crear canvas con tamaño exacto y fondo blanco desde el inicio
+  const canvas = document.getElementById('wsp-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width  = W;
+  canvas.height = TOTAL_H;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, TOTAL_H);
+
+  // Header naranja
+  ctx.fillStyle = '#E8670A';
+  ctx.fillRect(0, 0, W, headerH);
+  if (logoImg) ctx.drawImage(logoImg, 18, 10, 72, 72);
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 11px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('MUNICIPALIDAD DE CAÁ CATÍ — CORRIENTES', W/2, 36);
+  ctx.font = 'bold 30px Arial';
+  ctx.fillText('VALE MUNICIPAL', W/2, 76);
+
+  // Badge ID
+  ctx.fillStyle = '#FEF0E6';
+  const idW = 190, idH = 26, idX = (W-idW)/2, idY = 88;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(idX, idY, idW, idH, 6); else ctx.rect(idX, idY, idW, idH);
+  ctx.fill();
+  ctx.fillStyle = '#C45508'; ctx.font = 'bold 13px monospace'; ctx.textAlign = 'center';
+  ctx.fillText(vale.id, W/2, idY + 17);
+
+  // Separador
+  let y = headerH + 20;
+  ctx.strokeStyle = '#eeeeee'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W-30, y); ctx.stroke();
+  y += 16;
+
+  // Datos
   datos.forEach(([k, v]) => {
-    ctx.fillStyle = '#999';
-    ctx.font = '12px Arial';
+    ctx.fillStyle = '#999'; ctx.font = '12px Arial'; ctx.textAlign = 'left';
     ctx.fillText(k, 30, y);
-    ctx.fillStyle = '#1a1a18';
-    ctx.font = 'bold 13px Arial';
-    ctx.textAlign = 'right';
-    ctx.fillText(v, W - 30, y);
-    ctx.textAlign = 'left';
+    ctx.fillStyle = '#1a1a18'; ctx.font = 'bold 13px Arial'; ctx.textAlign = 'right';
+    ctx.fillText(v, W-30, y);
+    y += 14;
     ctx.strokeStyle = '#f5f5f5';
-    ctx.beginPath(); ctx.moveTo(30, y + 10); ctx.lineTo(W-30, y + 10); ctx.stroke();
-    y += 34;
+    ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W-30, y); ctx.stroke();
+    y += 20;
   });
 
   // Caja monto
-  const montoY = y + 10;
-  ctx.strokeStyle = '#E8670A';
-  ctx.lineWidth = 2;
+  y += 6;
+  ctx.strokeStyle = '#E8670A'; ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.roundRect ? ctx.roundRect(30, montoY, W-60, 56, 8) : ctx.rect(30, montoY, W-60, 56);
+  if (ctx.roundRect) ctx.roundRect(30, y, W-60, 54, 8); else ctx.rect(30, y, W-60, 54);
   ctx.stroke();
-  ctx.fillStyle = '#E8670A';
-  ctx.font = 'bold 28px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText(fmt$(vale.monto), W/2, montoY + 37);
+  ctx.fillStyle = '#E8670A'; ctx.font = 'bold 28px Arial'; ctx.textAlign = 'center';
+  ctx.fillText(fmt$(vale.monto), W/2, y + 36);
+  y += 70;
 
-  // QR centrado
-  const qrY = montoY + 76;
-  const qrSize = 200;
+  // QR
   if (qrEl) {
     try {
       if (qrEl.tagName === 'CANVAS') {
-        ctx.drawImage(qrEl, (W - qrSize)/2, qrY, qrSize, qrSize);
+        ctx.drawImage(qrEl, (W-qrSize)/2, y, qrSize, qrSize);
       } else {
         const img = await cargarImagen(qrEl.src);
-        ctx.drawImage(img, (W - qrSize)/2, qrY, qrSize, qrSize);
+        ctx.drawImage(img, (W-qrSize)/2, y, qrSize, qrSize);
       }
     } catch(e) {}
   }
+  ctx.fillStyle = '#bbb'; ctx.font = '11px Arial'; ctx.textAlign = 'center';
+  ctx.fillText('Escaneá el QR o ingresá el código en la app del comercio', W/2, y + qrSize + 16);
+  y += qrSize + 28;
 
-  // Nota bajo QR
-  ctx.fillStyle = '#bbb';
-  ctx.font = '11px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('Escaneá el QR o ingresá el código en la app del comercio', W/2, qrY + qrSize + 18);
-
-  // Firma y sello
+  // Firma
   if (firmaImg) {
-    const firmaH = 70, firmaW = 180;
-    ctx.drawImage(firmaImg, (W - firmaW)/2, qrY + qrSize + 30, firmaW, firmaH);
+    ctx.drawImage(firmaImg, (W-180)/2, y, 180, 70);
+    y += 80;
   }
 
   // Footer
-  const footerY = qrY + qrSize + 115;
-  canvas.height = footerY + 30;
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, qrY + qrSize + 108, W, 40);
   ctx.strokeStyle = '#f0f0f0';
-  ctx.beginPath(); ctx.moveTo(30, footerY - 8); ctx.lineTo(W-30, footerY - 8); ctx.stroke();
-  ctx.fillStyle = '#ccc';
-  ctx.font = '10px Arial';
-  ctx.textAlign = 'center';
-  const footerTxt = vale.firmante === 'meza'
+  ctx.beginPath(); ctx.moveTo(30, y); ctx.lineTo(W-30, y); ctx.stroke();
+  y += 14;
+  ctx.fillStyle = '#ccc'; ctx.font = '10px Arial'; ctx.textAlign = 'center';
+  ctx.fillText(vale.firmante === 'meza'
     ? 'Intendente Municipal — Municipalidad de Caá Catí'
-    : 'Secretaría General de Gobierno — Municipalidad de Caá Catí';
-  ctx.fillText(footerTxt, W/2, footerY + 10);
+    : 'Secretaría General de Gobierno — Municipalidad de Caá Catí', W/2, y);
 
-  qrHidden.innerHTML = ''; // limpiar QR oculto
+  qrHidden.innerHTML = '';
 
-  // 6. Exportar y compartir
+  // 5. Exportar
   canvas.toBlob(async blob => {
     const file = new File([blob], `vale-${vale.id}.jpg`, { type: 'image/jpeg' });
+    // Web Share API (móvil)
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
       try { await navigator.share({ files: [file], title: `Vale ${vale.id}` }); return; } catch(e) {}
     }
-    // Fallback: descargar + abrir WhatsApp
+    // Fallback escritorio: descargar imagen + abrir WhatsApp Web
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a'); a.href = url; a.download = `vale-${vale.id}.jpg`; a.click();
     URL.revokeObjectURL(url);
     setTimeout(() => {
       const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
-      const msg = encodeURIComponent(`🎫 *Vale Municipal — Municipalidad de Caá Catí*\nCódigo: *${vale.id}*\nBeneficiario: ${vale.destinatario}\nComercio: ${vale.comercioNombre}\nMonto: ${fmt$(vale.monto)}\nFecha: ${fmtF(vale.fecha)}\n\nAdjunto la imagen del vale con el QR.`);
-      window.open((tel ? `https://wa.me/549${tel}` : `https://wa.me/`) + `?text=${msg}`, '_blank');
+      const msg = encodeURIComponent(
+        `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n` +
+        `Código: *${vale.id}*\nBeneficiario: ${vale.destinatario}\n` +
+        `Comercio: ${vale.comercioNombre}\nMonto: ${fmt$(vale.monto)}\nFecha: ${fmtF(vale.fecha)}\n\n` +
+        `Adjunto la imagen del vale con el QR.`
+      );
+      // WhatsApp Web (no la app de escritorio)
+      const waUrl = (tel ? `https://web.whatsapp.com/send?phone=549${tel}` : `https://web.whatsapp.com/`) + `&text=${msg}`;
+      window.open(waUrl, '_blank');
     }, 800);
   }, 'image/jpeg', 0.95);
 }
@@ -850,6 +848,14 @@ async function cargarValesFin() {
   renderVales('lista-fin', res.vales, 'fin');
 }
 
+function reImprimirVale(id) {
+  const vale = _valesCache[id];
+  if (!vale) { alert('No se encontraron los datos del vale. Recargá la página e intentá de nuevo.'); return; }
+  // Para re-imprimir usamos firmante villalba por defecto si no está guardado
+  vale.firmante = vale.firmante || 'villalba';
+  mostrarVoucher(vale);
+}
+
 // ══════════════════════════════════════════════
 //  RENDER VALES
 // ══════════════════════════════════════════════
@@ -863,7 +869,10 @@ function renderVales(containerId, vales, ctx) {
     let sub = ctx==='com'
       ? (v.dni?'DNI: '+v.dni+' · ':'')+'Canjeado: '+fmtF(v.fechaCanje)
       : ((config.comercios||[]).find(c=>c.id===v.comercioId)?.nombre||v.comercioNombre||v.comercioId)+' · '+fmtF(v.fecha)+(v.fechaCanje?' · Canjeado: '+fmtF(v.fechaCanje):'');
-    return `<div class="vale-item"><div class="vale-info"><p class="vale-id">${v.id}</p><p class="vale-dest">${v.destinatario}${aB}${dE}</p><p class="vale-sub">${sub}</p></div><div class="vale-right"><span class="vale-monto">${fmt$(v.monto)}</span>${bE(v.estado)}</div></div>`;
+    const btnReimprimir = ctx === 'sec'
+      ? `<button onclick="reImprimirVale('${v.id}')" style="margin-top:4px;font-size:11px;padding:2px 8px;background:none;border:0.5px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text2);">🖨️ Reimprimir</button>`
+      : '';
+    return `<div class="vale-item"><div class="vale-info"><p class="vale-id">${v.id}</p><p class="vale-dest">${v.destinatario}${aB}${dE}</p><p class="vale-sub">${sub}</p>${btnReimprimir}</div><div class="vale-right"><span class="vale-monto">${fmt$(v.monto)}</span>${bE(v.estado)}</div></div>`;
   }).join('') + '</div>';
 }
 </script>

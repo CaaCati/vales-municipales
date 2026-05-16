@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
-    --brand: #185FA5; --brand-light: #E6F1FB; --brand-dark: #0C447C;
+    --brand: #E8670A; --brand-light: #FEF0E6; --brand-dark: #C45508;
     --green: #0F6E56; --green-light: #EAF3DE;
     --amber: #BA7517; --amber-light: #FAEEDA;
     --red: #A32D2D; --red-light: #FCEBEB;
@@ -23,11 +23,12 @@
   /* LOGIN */
   #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
   .login-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 340px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
-  .login-logo { width: 52px; height: 52px; background: var(--brand-light); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 26px; }
+  .login-logo { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; }
+  .login-logo img { width: 72px; height: 72px; object-fit: contain; }
   .login-title { font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 4px; }
   .login-sub { font-size: 13px; color: var(--text2); text-align: center; margin-bottom: 1.5rem; }
   .form-label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 4px; }
-  .login-input { width: 100%; padding: 0.55rem 0.75rem; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; background: var(--bg); color: var(--text); margin-bottom: 1rem; }
+  .login-input { width: 100%; padding: 0.55rem 0.75rem; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; margin-bottom: 1rem; }
   .login-input:focus { outline: none; border-color: var(--brand); }
   .btn-login { width: 100%; background: var(--brand); color: white; border: none; border-radius: var(--radius-sm); padding: 0.6rem; font-size: 15px; font-weight: 500; cursor: pointer; }
   .btn-login:hover { background: var(--brand-dark); }
@@ -43,7 +44,6 @@
   .topbar-name { font-size: 14px; font-weight: 600; }
   .badge-ro { font-size: 11px; background: var(--brand-light); color: var(--brand); padding: 2px 8px; border-radius: 20px; font-weight: 500; }
   .logout-btn { font-size: 12px; color: var(--text2); background: none; border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 4px 10px; cursor: pointer; }
-  .logout-btn:hover { color: var(--text); }
 
   /* CARDS */
   .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
@@ -54,7 +54,7 @@
   .stat { background: var(--bg2); border-radius: var(--radius-sm); padding: 0.875rem; text-align: center; }
   .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
   .stat-num { font-size: 22px; font-weight: 600; }
-  .stat-num.blue { color: var(--brand); }
+  .stat-num.orange { color: var(--brand); }
   .stat-num.green { color: var(--green); }
   .stat-num.amber { color: var(--amber); }
 
@@ -96,8 +96,7 @@
   .vale-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
   .vale-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
   .vale-monto { font-size: 15px; font-weight: 600; }
-  .empty-msg { font-size: 13px; color: var(--text2); text-align: center; padding: 1.5rem 0; }
-  .loading { font-size: 13px; color: var(--text2); text-align: center; padding: 1.5rem 0; }
+  .empty-msg, .loading { font-size: 13px; color: var(--text2); text-align: center; padding: 1.5rem 0; }
 
   /* BADGES */
   .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
@@ -125,69 +124,46 @@
   /* MODAL */
   .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
   .modal-bg.show { display: flex; }
-  .modal { background: var(--bg); border-radius: var(--radius); padding: 1.5rem; max-width: 340px; width: 100%; }
+  .modal { background: var(--bg); border-radius: var(--radius); padding: 1.5rem; max-width: 360px; width: 100%; }
   .modal-title { font-size: 15px; font-weight: 600; margin-bottom: 0.5rem; }
   .modal-body { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 1.25rem; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-  /* VOUCHER OVERLAY (pantalla normal) */
-  #voucher-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-    z-index: 200; align-items: center; justify-content: center; padding: 1rem; overflow-y: auto;
-  }
+  /* VOUCHER OVERLAY */
+  #voucher-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: flex-start; justify-content: center; padding: 1rem; overflow-y: auto; }
   #voucher-overlay.show { display: flex; }
-  #voucher-wrap {
-    background: white; border-radius: var(--radius); padding: 1.5rem;
-    max-width: 420px; width: 100%;
-  }
+  #voucher-wrap { background: white; border-radius: var(--radius); padding: 1.5rem; max-width: 440px; width: 100%; margin: auto; }
   .voucher-actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 1rem; }
 
-  /* VOUCHER — el contenido real que se imprime */
+  /* VOUCHER PRINT CONTENT */
   #voucher-print {
     background: white; border: 1px solid #ddd; border-radius: 8px;
     padding: 1.5rem; font-family: Arial, sans-serif;
   }
-  .vp-header { text-align: center; border-bottom: 2px solid #185FA5; padding-bottom: 0.75rem; margin-bottom: 1rem; }
-  .vp-muni { font-size: 10px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; }
-  .vp-title { font-size: 22px; font-weight: 700; color: #185FA5; margin: 3px 0; }
-  .vp-id { font-size: 13px; font-family: monospace; color: #333; }
-  .vp-row { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 0.5px solid #eee; font-size: 13px; }
+  .vp-header { text-align: center; padding-bottom: 0.875rem; margin-bottom: 1rem; border-bottom: 3px solid #E8670A; }
+  .vp-logo { width: 60px; height: 60px; object-fit: contain; margin-bottom: 6px; }
+  .vp-muni { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .vp-title { font-size: 22px; font-weight: 700; color: #E8670A; margin: 2px 0 6px; }
+  .vp-id { display: inline-block; font-size: 13px; font-family: monospace; background: #FEF0E6; color: #C45508; padding: 3px 10px; border-radius: 4px; font-weight: 600; }
+  .vp-body { margin-bottom: 1rem; }
+  .vp-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 0.5px solid #f0f0f0; font-size: 13px; }
   .vp-row:last-child { border-bottom: none; }
-  .vp-key { color: #777; }
-  .vp-val { font-weight: 600; text-align: right; }
-  .vp-monto-box { font-size: 24px; font-weight: 700; color: #185FA5; text-align: center; padding: 0.75rem; border: 2px solid #185FA5; border-radius: 6px; margin: 0.875rem 0; }
-  .vp-qr-area { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 0.75rem; }
-  .vp-qr-note { font-size: 10px; color: #999; text-align: center; max-width: 240px; }
-  .vp-footer { text-align: center; font-size: 10px; color: #aaa; margin-top: 0.75rem; border-top: 0.5px solid #eee; padding-top: 0.75rem; line-height: 1.5; }
+  .vp-key { color: #888; }
+  .vp-val { font-weight: 600; text-align: right; max-width: 60%; }
+  .vp-monto-box { font-size: 26px; font-weight: 700; color: #E8670A; text-align: center; padding: 0.75rem; border: 2.5px solid #E8670A; border-radius: 8px; margin: 0.875rem 0; }
+  .vp-qr-area { display: flex; flex-direction: column; align-items: center; gap: 6px; margin: 0.875rem 0; }
+  .vp-qr-note { font-size: 10px; color: #aaa; text-align: center; max-width: 260px; line-height: 1.4; }
+  .vp-firma { display: flex; justify-content: center; margin: 0.75rem 0 0.5rem; }
+  .vp-firma img { max-height: 80px; max-width: 220px; object-fit: contain; }
+  .vp-footer { text-align: center; font-size: 10px; color: #bbb; border-top: 0.5px solid #eee; padding-top: 0.75rem; line-height: 1.5; }
 
-  /* ══ PRINT STYLES ══ */
+  /* PRINT STYLES */
   @media print {
-    /* Ocultar absolutamente todo */
     body > * { display: none !important; }
-    /* Mostrar solo el voucher */
-    #voucher-overlay,
-    #voucher-overlay #voucher-wrap,
-    #voucher-overlay #voucher-wrap #voucher-print,
-    #voucher-overlay #voucher-wrap #voucher-print * {
-      display: block !important;
-      visibility: visible !important;
-    }
-    #voucher-overlay {
-      position: static !important;
-      background: none !important;
-      padding: 0 !important;
-    }
-    #voucher-wrap {
-      padding: 0 !important;
-      border-radius: 0 !important;
-      max-width: 100% !important;
-    }
+    #voucher-overlay { display: block !important; position: static !important; background: none !important; padding: 0 !important; overflow: visible !important; }
+    #voucher-wrap { padding: 0 !important; border-radius: 0 !important; max-width: 100% !important; box-shadow: none !important; }
     .voucher-actions { display: none !important; }
-    #voucher-print {
-      border: none !important;
-      padding: 1.5cm !important;
-      border-radius: 0 !important;
-    }
+    #voucher-print { border: none !important; border-radius: 0 !important; padding: 1cm 1.5cm !important; }
     @page { margin: 0; size: A4; }
   }
 
@@ -203,7 +179,7 @@
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
-    <div class="login-logo">🎫</div>
+    <div class="login-logo"><img src="logo-municipio.png" alt="Logo Municipio" onerror="this.style.display='none'" /></div>
     <p class="login-title">Sistema de Vales</p>
     <p class="login-sub">Municipalidad de Caá Catí</p>
     <label class="form-label">Contraseña</label>
@@ -220,7 +196,7 @@
     <button class="logout-btn" onclick="logout()">Salir</button>
   </div>
   <div class="stats-grid">
-    <div class="stat"><p class="stat-label">Emitidos hoy</p><p class="stat-num blue" id="s-hoy">—</p></div>
+    <div class="stat"><p class="stat-label">Emitidos hoy</p><p class="stat-num orange" id="s-hoy">—</p></div>
     <div class="stat"><p class="stat-label">Pendientes</p><p class="stat-num amber" id="s-pend">—</p></div>
     <div class="stat"><p class="stat-label">Canjeados (mes)</p><p class="stat-num green" id="s-canj">—</p></div>
   </div>
@@ -255,16 +231,22 @@
       </div>
     </div>
     <div class="form-row">
+      <div class="form-group"><label class="form-label">Firmante</label>
+        <select id="n-firmante">
+          <option value="villalba">Oscar A. Villalba — Sec. Gral. de Gobierno</option>
+          <option value="meza">José Selmar Meza — Intendente Municipal</option>
+        </select>
+      </div>
       <div class="form-group"><label class="form-label">Entrega</label>
         <select id="n-envio" onchange="toggleWsp()">
           <option value="imprimir">Imprimir voucher</option>
           <option value="whatsapp">Enviar por WhatsApp</option>
         </select>
       </div>
-      <div class="form-group" id="wsp-group" style="display:none;">
-        <label class="form-label">Teléfono</label>
-        <input type="text" id="n-tel" placeholder="3794 xxxxxx" />
-      </div>
+    </div>
+    <div class="form-group" id="wsp-group" style="display:none; margin-bottom:12px;">
+      <label class="form-label">Teléfono WhatsApp</label>
+      <input type="text" id="n-tel" placeholder="3794 xxxxxx" />
     </div>
     <div class="btn-row">
       <button class="btn-success" id="btn-emitir" onclick="emitirVale()">＋ Emitir vale</button>
@@ -300,8 +282,7 @@
     <div class="canjear-row">
       <div class="form-group">
         <label class="form-label">Código del vale</label>
-        <input type="text" id="canj-codigo" placeholder="Ej: VAL-2026-0003"
-          style="font-family:monospace;text-transform:uppercase;letter-spacing:0.5px;" />
+        <input type="text" id="canj-codigo" placeholder="Ej: VAL-2026-0003" style="font-family:monospace;text-transform:uppercase;letter-spacing:0.5px;" />
       </div>
       <button class="btn-success" onclick="canjearVale()">Canjear</button>
     </div>
@@ -333,7 +314,7 @@
     <button class="logout-btn" onclick="logout()">Salir</button>
   </div>
   <div class="stats-grid">
-    <div class="stat"><p class="stat-label">Emitido (mes)</p><p class="stat-num blue" id="f-emit">—</p></div>
+    <div class="stat"><p class="stat-label">Emitido (mes)</p><p class="stat-num orange" id="f-emit">—</p></div>
     <div class="stat"><p class="stat-label">Canjeado (mes)</p><p class="stat-num green" id="f-canj">—</p></div>
     <div class="stat"><p class="stat-label">Pendiente</p><p class="stat-num amber" id="f-pend">—</p></div>
   </div>
@@ -373,26 +354,32 @@
   <div id="voucher-wrap">
     <div class="voucher-actions">
       <button class="btn-secondary" onclick="cerrarVoucher()">Cerrar</button>
-      <button class="btn-primary" onclick="imprimirVoucher()">🖨️ Imprimir</button>
+      <button class="btn-primary" onclick="window.print()">🖨️ Imprimir</button>
     </div>
     <div id="voucher-print">
       <div class="vp-header">
+        <img src="logo-municipio.png" class="vp-logo" alt="Logo" onerror="this.style.display='none'" />
         <p class="vp-muni">Municipalidad de Caá Catí — Corrientes</p>
         <p class="vp-title">VALE MUNICIPAL</p>
-        <p class="vp-id" id="vp-id">—</p>
+        <span class="vp-id" id="vp-id">—</span>
       </div>
-      <div id="vp-body">
+      <div class="vp-body">
         <div class="vp-row"><span class="vp-key">Destinatario</span><span class="vp-val" id="vp-dest">—</span></div>
         <div class="vp-row" id="vp-dni-row"><span class="vp-key">DNI</span><span class="vp-val" id="vp-dni">—</span></div>
         <div class="vp-row"><span class="vp-key">Comercio autorizado</span><span class="vp-val" id="vp-comercio">—</span></div>
         <div class="vp-row"><span class="vp-key">Fecha de emisión</span><span class="vp-val" id="vp-fecha">—</span></div>
       </div>
       <div class="vp-monto-box" id="vp-monto">$0</div>
+      <!-- QR único — se limpia y regenera cada vez -->
       <div class="vp-qr-area">
         <div id="vp-qr-code"></div>
-        <p class="vp-qr-note">El comercio debe escanear este código o ingresarlo manualmente en la app para validar el vale</p>
+        <p class="vp-qr-note">El comercio debe escanear este código QR o ingresarlo manualmente en la app para validar el vale</p>
       </div>
-      <div class="vp-footer">
+      <!-- Firma y sello -->
+      <div class="vp-firma">
+        <img id="vp-firma-img" src="" alt="Firma y sello" onerror="this.style.display='none'" />
+      </div>
+      <div class="vp-footer" id="vp-footer-txt">
         Secretaría General de Gobierno — Municipalidad de Caá Catí<br>
         Este vale es válido únicamente en el comercio indicado y por el monto expresado.
       </div>
@@ -400,47 +387,44 @@
   </div>
 </div>
 
-<!-- Canvas oculto para generar imagen WhatsApp -->
+<!-- Canvas oculto para imagen WhatsApp -->
 <canvas id="wsp-canvas" style="display:none;"></canvas>
+<!-- QR oculto para WhatsApp (evita duplicado en voucher) -->
+<div id="wsp-qr-hidden" style="position:absolute;left:-9999px;top:-9999px;visibility:hidden;"></div>
 
 <script>
 // ══════════════════════════════════════════════
-//  CONFIGURACIÓN — reemplazá con tu URL de Apps Script
+//  CONFIGURACIÓN
 // ══════════════════════════════════════════════
-const API      = 'https://script.google.com/macros/s/AKfycbxqIqtNSFFVz1AHAMqYCIHWAzoGV6CZ4KbbkwSKVQd23pANFe2F6O_i6foHFnnb1i30PA/exec';
-const APP_URL  = 'https://caacati.github.io/vales-municipales/'; // URL de la app en GitHub Pages
+const API     = 'https://script.google.com/macros/s/AKfycbxqIqtNSFFVz1AHAMqYCIHWAzoGV6CZ4KbbkwSKVQd23pANFe2F6O_i6foHFnnb1i30PA/exec';
+const APP_URL = 'https://caacati.github.io/vales-municipales/';
+
+// Rutas a las imágenes de firma+sello (PNG con fondo transparente)
+// Colocar los archivos en la misma carpeta que el HTML en GitHub
+const FIRMAS = {
+  villalba: 'firma-villalba.png',  // Oscar A. Villalba
+  meza:     'firma-meza.png',      // José Selmar Meza
+};
 
 // ══════════════════════════════════════════════
 //  ESTADO
 // ══════════════════════════════════════════════
-let sesion = null;
-let config = {};
-let pendFacturar = [];
-let pass = '';
+let sesion = null, config = {}, pendFacturar = [], pass = '';
 
-// ══════════════════════════════════════════════
-//  DEEP LINK: si la URL tiene ?canjear=VAL-xxx, pre-carga el código
-// ══════════════════════════════════════════════
+// Deep link: si la URL tiene ?canjear=VAL-xxx
 window.addEventListener('load', () => {
-  const params = new URLSearchParams(window.location.search);
-  const codigo = params.get('canjear');
-  if (codigo) {
-    // Guardamos para pre-cargar una vez que el comercio se loguee
-    window._precargaCodigo = codigo.toUpperCase();
-  }
+  const c = new URLSearchParams(window.location.search).get('canjear');
+  if (c) window._precargaCodigo = c.toUpperCase();
 });
 
 // ══════════════════════════════════════════════
 //  API
 // ══════════════════════════════════════════════
 async function api(params) {
-  const qs = new URLSearchParams({ ...params, pass });
   try {
-    const r = await fetch(API + '?' + qs);
+    const r = await fetch(API + '?' + new URLSearchParams({ ...params, pass }));
     return await r.json();
-  } catch (e) {
-    return { ok: false, error: 'Error de conexión.' };
-  }
+  } catch { return { ok: false, error: 'Error de conexión.' }; }
 }
 
 // ══════════════════════════════════════════════
@@ -449,9 +433,8 @@ async function api(params) {
 function fmt$(n) { return '$' + Number(n).toLocaleString('es-AR'); }
 function fmtF(iso) {
   if (!iso) return '';
-  const clean = String(iso).replace(/T.*$/, '').trim();
-  const p = clean.split('-');
-  return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0] : clean;
+  const p = String(iso).replace(/T.*$/, '').split('-');
+  return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : iso;
 }
 
 // ══════════════════════════════════════════════
@@ -462,46 +445,31 @@ async function doLogin() {
   const err = document.getElementById('login-error');
   err.textContent = '';
   if (!p) { err.textContent = 'Ingresá tu contraseña.'; return; }
-
   const btn = document.querySelector('.btn-login');
   btn.textContent = 'Verificando...'; btn.disabled = true;
   pass = p;
-
   const res = await api({ accion: 'login' });
   btn.textContent = 'Ingresar'; btn.disabled = false;
-
   if (!res.ok) { err.textContent = res.error || 'Contraseña incorrecta.'; pass = ''; return; }
   sesion = res;
-
   const cfg = await api({ accion: 'getConfig' });
   if (cfg.ok) { config = cfg; poblarSelectores(); }
-
   document.getElementById('login-screen').style.display = 'none';
-
-  if (res.rol === 'secretaria') {
-    mostrarPanel('panel-secretaria'); cargarStatsSec(); cargarValesSec();
-  } else if (res.rol === 'finanzas') {
-    mostrarPanel('panel-finanzas'); cargarStatsFin(); cargarValesFin();
-  } else if (res.rol === 'comercio') {
+  if (res.rol === 'secretaria') { mostrarPanel('panel-secretaria'); cargarStatsSec(); cargarValesSec(); }
+  else if (res.rol === 'finanzas') { mostrarPanel('panel-finanzas'); cargarStatsFin(); cargarValesFin(); }
+  else if (res.rol === 'comercio') {
     document.getElementById('comercio-topbar').textContent = res.comercioNombre || res.nombre;
     mostrarPanel('panel-comercio');
-    // Pre-cargar código si vino por QR
-    if (window._precargaCodigo) {
-      document.getElementById('canj-codigo').value = window._precargaCodigo;
-      window._precargaCodigo = null;
-    }
+    if (window._precargaCodigo) { document.getElementById('canj-codigo').value = window._precargaCodigo; window._precargaCodigo = null; }
     cargarValesCom();
   }
 }
 
 function poblarSelectores() {
-  const areas    = config.areas    || [];
-  const comercios = config.comercios || [];
-
+  const areas = config.areas || [], comercios = config.comercios || [];
   const selArea = document.getElementById('n-area');
   selArea.innerHTML = '<option value="">Seleccionar área...</option>';
   areas.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; selArea.appendChild(o); });
-
   [document.getElementById('n-comercio'), document.getElementById('sec-comercio'), document.getElementById('fin-comercio')].forEach((sel, i) => {
     sel.innerHTML = i === 0 ? '<option value="">Seleccionar...</option>' : '<option value="">Todos los comercios</option>';
     comercios.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nombre; sel.appendChild(o); });
@@ -512,7 +480,6 @@ function mostrarPanel(id) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
-
 function logout() {
   sesion = null; pass = '';
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
@@ -520,11 +487,10 @@ function logout() {
   document.getElementById('login-pass').value = '';
   document.getElementById('login-error').textContent = '';
 }
-
 document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
 // ══════════════════════════════════════════════
-//  TIPO / WSP TOGGLE
+//  TIPO / WSP
 // ══════════════════════════════════════════════
 let tipoDestinatario = 'persona';
 function setTipo(t) {
@@ -540,7 +506,7 @@ function toggleWsp() {
 }
 
 // ══════════════════════════════════════════════
-//  SECRETARÍA — STATS
+//  STATS SECRETARÍA
 // ══════════════════════════════════════════════
 async function cargarStatsSec() {
   const res = await api({ accion: 'getStats' });
@@ -551,29 +517,23 @@ async function cargarStatsSec() {
 }
 
 // ══════════════════════════════════════════════
-//  SECRETARÍA — LISTA
+//  LISTA SECRETARÍA
 // ══════════════════════════════════════════════
 async function cargarValesSec() {
   document.getElementById('lista-sec').innerHTML = '<p class="loading">Cargando...</p>';
-  const res = await api({
-    accion: 'getVales',
-    desde:    document.getElementById('sec-desde').value,
-    hasta:    document.getElementById('sec-hasta').value,
-    estado:   document.getElementById('sec-estado').value,
-    comercio: document.getElementById('sec-comercio').value,
-  });
+  const res = await api({ accion: 'getVales', desde: document.getElementById('sec-desde').value, hasta: document.getElementById('sec-hasta').value, estado: document.getElementById('sec-estado').value, comercio: document.getElementById('sec-comercio').value });
   if (!res.ok) { document.getElementById('lista-sec').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
   renderVales('lista-sec', res.vales, 'sec');
 }
 
 // ══════════════════════════════════════════════
-//  SECRETARÍA — EMITIR
+//  EMITIR VALE
 // ══════════════════════════════════════════════
 async function emitirVale() {
   const comercioId = document.getElementById('n-comercio').value;
   const monto = document.getElementById('n-monto').value;
+  const firmante = document.getElementById('n-firmante').value;
   let destinatario = '', dni = '';
-
   if (tipoDestinatario === 'persona') {
     destinatario = document.getElementById('n-benef').value.trim();
     dni = document.getElementById('n-dni').value.trim();
@@ -589,7 +549,6 @@ async function emitirVale() {
   btn.textContent = 'Emitiendo...'; btn.disabled = true;
   const res = await api({ accion: 'emitirVale', tipo: tipoDestinatario, destinatario, dni, comercioId, monto });
   btn.textContent = '＋ Emitir vale'; btn.disabled = false;
-
   if (!res.ok) { alert('Error: ' + res.error); return; }
 
   document.getElementById('n-benef').value = '';
@@ -598,39 +557,49 @@ async function emitirVale() {
   document.getElementById('n-comercio').value = '';
   document.getElementById('n-monto').value = '';
 
-  const envio = document.getElementById('n-envio').value;
-  if (envio === 'imprimir') {
+  res.firmante = firmante; // agregar firmante al objeto para usarlo en voucher/img
+
+  if (document.getElementById('n-envio').value === 'imprimir') {
     mostrarVoucher(res);
   } else {
     await enviarPorWhatsApp(res);
   }
-
   cargarStatsSec(); cargarValesSec();
 }
 
 // ══════════════════════════════════════════════
 //  VOUCHER IMPRIMIBLE
 // ══════════════════════════════════════════════
-let _voucherQR = null;
-
 function mostrarVoucher(vale) {
-  document.getElementById('vp-id').textContent      = vale.id;
-  document.getElementById('vp-dest').textContent    = vale.destinatario;
-  document.getElementById('vp-fecha').textContent   = fmtF(vale.fecha);
-  document.getElementById('vp-monto').textContent   = fmt$(vale.monto);
+  document.getElementById('vp-id').textContent       = vale.id;
+  document.getElementById('vp-dest').textContent     = vale.destinatario;
+  document.getElementById('vp-fecha').textContent    = fmtF(vale.fecha);
+  document.getElementById('vp-monto').textContent    = fmt$(vale.monto);
   document.getElementById('vp-comercio').textContent = vale.comercioNombre || '—';
 
   const dniRow = document.getElementById('vp-dni-row');
   if (vale.dni) { document.getElementById('vp-dni').textContent = vale.dni; dniRow.style.display = 'flex'; }
   else { dniRow.style.display = 'none'; }
 
-  // QR apunta a la app con el código pre-cargado
+  // Firma y sello
+  const firmaImg = document.getElementById('vp-firma-img');
+  const firmaPath = FIRMAS[vale.firmante] || FIRMAS.villalba;
+  firmaImg.src = firmaPath;
+  firmaImg.style.display = 'block';
+
+  // Footer según firmante
+  const footerTxt = document.getElementById('vp-footer-txt');
+  footerTxt.innerHTML = vale.firmante === 'meza'
+    ? 'Intendente Municipal — Municipalidad de Caá Catí<br>Este vale es válido únicamente en el comercio indicado y por el monto expresado.'
+    : 'Secretaría General de Gobierno — Municipalidad de Caá Catí<br>Este vale es válido únicamente en el comercio indicado y por el monto expresado.';
+
+  // ── QR: limpiar completamente antes de generar uno nuevo ──
   const qrDiv = document.getElementById('vp-qr-code');
   qrDiv.innerHTML = '';
-  _voucherQR = new QRCode(qrDiv, {
+  new QRCode(qrDiv, {
     text: APP_URL + '?canjear=' + vale.id,
-    width: 120, height: 120,
-    colorDark: '#185FA5', colorLight: '#ffffff',
+    width: 130, height: 130,
+    colorDark: '#E8670A', colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.M
   });
 
@@ -639,68 +608,83 @@ function mostrarVoucher(vale) {
 
 function cerrarVoucher() {
   document.getElementById('voucher-overlay').classList.remove('show');
-}
-
-function imprimirVoucher() {
-  window.print();
+  // Limpiar QR al cerrar para evitar acumulación
+  document.getElementById('vp-qr-code').innerHTML = '';
 }
 
 // ══════════════════════════════════════════════
-//  WHATSAPP COMO IMAGEN
+//  WHATSAPP — imagen vertical
 // ══════════════════════════════════════════════
 async function enviarPorWhatsApp(vale) {
-  // Generar QR en canvas oculto
-  const qrDiv = document.createElement('div');
-  qrDiv.style.display = 'none';
-  document.body.appendChild(qrDiv);
-
+  // 1. Generar QR en div oculto separado (nunca el del voucher)
+  const qrHidden = document.getElementById('wsp-qr-hidden');
+  qrHidden.innerHTML = '';
   await new Promise(resolve => {
-    new QRCode(qrDiv, {
+    new QRCode(qrHidden, {
       text: APP_URL + '?canjear=' + vale.id,
-      width: 200, height: 200,
-      colorDark: '#185FA5', colorLight: '#ffffff',
+      width: 220, height: 220,
+      colorDark: '#E8670A', colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M
     });
-    setTimeout(resolve, 400); // esperar que el QR se genere
+    setTimeout(resolve, 500);
   });
 
-  const qrImg = qrDiv.querySelector('img') || qrDiv.querySelector('canvas');
+  // 2. Obtener canvas/img del QR
+  const qrEl = qrHidden.querySelector('canvas') || qrHidden.querySelector('img');
 
-  // Dibujar todo en canvas
+  // 3. Cargar logo
+  const logoImg = await cargarImagen('logo-municipio.png').catch(() => null);
+
+  // 4. Cargar firma
+  const firmaPath = FIRMAS[vale.firmante] || FIRMAS.villalba;
+  const firmaImg = await cargarImagen(firmaPath).catch(() => null);
+
+  // 5. Dibujar canvas vertical (400 x ~700)
+  const W = 440;
   const canvas = document.getElementById('wsp-canvas');
   const ctx = canvas.getContext('2d');
-  const W = 600, H = 480;
-  canvas.width = W; canvas.height = H;
+  canvas.width = W;
+  canvas.height = 720;
 
   // Fondo blanco
   ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, W, 720);
 
-  // Franja superior azul
-  ctx.fillStyle = '#185FA5';
-  ctx.fillRect(0, 0, W, 80);
+  // Header naranja
+  ctx.fillStyle = '#E8670A';
+  ctx.fillRect(0, 0, W, 110);
 
-  // Texto encabezado
+  // Logo en header
+  if (logoImg) {
+    ctx.drawImage(logoImg, 20, 12, 70, 70);
+  }
+
+  // Texto header
   ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 13px Arial';
+  ctx.font = 'bold 11px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('MUNICIPALIDAD DE CAÁ CATÍ — CORRIENTES', W/2, 28);
-  ctx.font = 'bold 28px Arial';
-  ctx.fillText('VALE MUNICIPAL', W/2, 60);
+  ctx.fillText('MUNICIPALIDAD DE CAÁ CATÍ — CORRIENTES', W/2, 38);
+  ctx.font = 'bold 30px Arial';
+  ctx.fillText('VALE MUNICIPAL', W/2, 78);
 
   // ID del vale
-  ctx.fillStyle = '#185FA5';
-  ctx.font = 'bold 16px monospace';
-  ctx.fillText(vale.id, W/2, 110);
+  ctx.fillStyle = '#FEF0E6';
+  ctx.beginPath();
+  const idW = 180, idH = 28, idX = (W - idW)/2, idY = 88;
+  ctx.roundRect ? ctx.roundRect(idX, idY, idW, idH, 6) : ctx.rect(idX, idY, idW, idH);
+  ctx.fill();
+  ctx.fillStyle = '#C45508';
+  ctx.font = 'bold 14px monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(vale.id, W/2, 107);
 
   // Línea separadora
-  ctx.strokeStyle = '#e0e0e0';
+  ctx.strokeStyle = '#f0f0f0';
   ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(40, 125); ctx.lineTo(W-40, 125); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(30, 128); ctx.lineTo(W-30, 128); ctx.stroke();
 
   // Datos
   ctx.textAlign = 'left';
-  ctx.font = '13px Arial';
   const datos = [
     ['Destinatario', vale.destinatario],
     vale.dni ? ['DNI', vale.dni] : null,
@@ -708,152 +692,136 @@ async function enviarPorWhatsApp(vale) {
     ['Fecha de emisión', fmtF(vale.fecha)],
   ].filter(Boolean);
 
-  let y = 155;
+  let y = 158;
   datos.forEach(([k, v]) => {
-    ctx.fillStyle = '#888888';
-    ctx.fillText(k, 40, y);
+    ctx.fillStyle = '#999';
+    ctx.font = '12px Arial';
+    ctx.fillText(k, 30, y);
     ctx.fillStyle = '#1a1a18';
     ctx.font = 'bold 13px Arial';
-    ctx.fillText(v, 200, y);
-    ctx.font = '13px Arial';
-    y += 30;
+    ctx.textAlign = 'right';
+    ctx.fillText(v, W - 30, y);
+    ctx.textAlign = 'left';
+    ctx.strokeStyle = '#f5f5f5';
+    ctx.beginPath(); ctx.moveTo(30, y + 10); ctx.lineTo(W-30, y + 10); ctx.stroke();
+    y += 34;
   });
 
   // Caja monto
-  ctx.strokeStyle = '#185FA5';
+  const montoY = y + 10;
+  ctx.strokeStyle = '#E8670A';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.roundRect ? ctx.roundRect(40, y + 5, W - 80, 52, 8) : ctx.rect(40, y + 5, W - 80, 52);
+  ctx.roundRect ? ctx.roundRect(30, montoY, W-60, 56, 8) : ctx.rect(30, montoY, W-60, 56);
   ctx.stroke();
-  ctx.fillStyle = '#185FA5';
-  ctx.font = 'bold 26px Arial';
+  ctx.fillStyle = '#E8670A';
+  ctx.font = 'bold 28px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText(fmt$(vale.monto), W/2, y + 38);
+  ctx.fillText(fmt$(vale.monto), W/2, montoY + 37);
 
-  // QR a la derecha
-  if (qrImg) {
+  // QR centrado
+  const qrY = montoY + 76;
+  const qrSize = 200;
+  if (qrEl) {
     try {
-      const qrX = W - 220, qrY = 130;
-      if (qrImg.tagName === 'CANVAS') {
-        ctx.drawImage(qrImg, qrX, qrY, 170, 170);
+      if (qrEl.tagName === 'CANVAS') {
+        ctx.drawImage(qrEl, (W - qrSize)/2, qrY, qrSize, qrSize);
       } else {
-        await new Promise(r => {
-          const img = new Image();
-          img.onload = () => { ctx.drawImage(img, qrX, qrY, 170, 170); r(); };
-          img.src = qrImg.src;
-        });
+        const img = await cargarImagen(qrEl.src);
+        ctx.drawImage(img, (W - qrSize)/2, qrY, qrSize, qrSize);
       }
-      // Reubicar datos a la izquierda si hay QR
     } catch(e) {}
   }
 
-  // Footer
-  ctx.fillStyle = '#aaaaaa';
+  // Nota bajo QR
+  ctx.fillStyle = '#bbb';
   ctx.font = '11px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('Escanear el QR o ingresar el código en la app del comercio', W/2, H - 20);
+  ctx.fillText('Escaneá el QR o ingresá el código en la app del comercio', W/2, qrY + qrSize + 18);
 
-  document.body.removeChild(qrDiv);
+  // Firma y sello
+  if (firmaImg) {
+    const firmaH = 70, firmaW = 180;
+    ctx.drawImage(firmaImg, (W - firmaW)/2, qrY + qrSize + 30, firmaW, firmaH);
+  }
 
-  // Convertir canvas a blob y compartir / descargar
+  // Footer
+  const footerY = qrY + qrSize + 115;
+  canvas.height = footerY + 30;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, qrY + qrSize + 108, W, 40);
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.beginPath(); ctx.moveTo(30, footerY - 8); ctx.lineTo(W-30, footerY - 8); ctx.stroke();
+  ctx.fillStyle = '#ccc';
+  ctx.font = '10px Arial';
+  ctx.textAlign = 'center';
+  const footerTxt = vale.firmante === 'meza'
+    ? 'Intendente Municipal — Municipalidad de Caá Catí'
+    : 'Secretaría General de Gobierno — Municipalidad de Caá Catí';
+  ctx.fillText(footerTxt, W/2, footerY + 10);
+
+  qrHidden.innerHTML = ''; // limpiar QR oculto
+
+  // 6. Exportar y compartir
   canvas.toBlob(async blob => {
     const file = new File([blob], `vale-${vale.id}.jpg`, { type: 'image/jpeg' });
-
-    // Si el navegador soporta Web Share API con archivos (móvil)
     if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: `Vale Municipal ${vale.id}`,
-          text: `Vale Municipal — ${vale.destinatario} — ${fmt$(vale.monto)}`,
-        });
-        return;
-      } catch(e) { /* fallback */ }
+      try { await navigator.share({ files: [file], title: `Vale ${vale.id}` }); return; } catch(e) {}
     }
-
-    // Fallback: descargar la imagen + abrir WhatsApp con texto
+    // Fallback: descargar + abrir WhatsApp
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = `vale-${vale.id}.jpg`; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = `vale-${vale.id}.jpg`; a.click();
     URL.revokeObjectURL(url);
-
-    // Abrir WhatsApp con mensaje de texto como respaldo
     setTimeout(() => {
       const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
-      const msg = encodeURIComponent(
-        `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n\n` +
-        `Código: *${vale.id}*\n` +
-        `Beneficiario: ${vale.destinatario}\n` +
-        `Comercio: ${vale.comercioNombre}\n` +
-        `Monto: ${fmt$(vale.monto)}\n` +
-        `Fecha: ${fmtF(vale.fecha)}\n\n` +
-        `Adjunto encontrarás la imagen del vale con el código QR.`
-      );
-      const waUrl = tel ? `https://wa.me/549${tel}?text=${msg}` : `https://wa.me/?text=${msg}`;
-      window.open(waUrl, '_blank');
+      const msg = encodeURIComponent(`🎫 *Vale Municipal — Municipalidad de Caá Catí*\nCódigo: *${vale.id}*\nBeneficiario: ${vale.destinatario}\nComercio: ${vale.comercioNombre}\nMonto: ${fmt$(vale.monto)}\nFecha: ${fmtF(vale.fecha)}\n\nAdjunto la imagen del vale con el QR.`);
+      window.open((tel ? `https://wa.me/549${tel}` : `https://wa.me/`) + `?text=${msg}`, '_blank');
     }, 800);
   }, 'image/jpeg', 0.95);
 }
 
-// ══════════════════════════════════════════════
-//  COMERCIO — LISTA
-// ══════════════════════════════════════════════
-async function cargarValesCom() {
-  document.getElementById('lista-com').innerHTML = '<p class="loading">Cargando...</p>';
-  const desde = document.getElementById('com-desde').value;
-  const hasta = document.getElementById('com-hasta').value;
-  const verFact = document.getElementById('ver-facturados').checked;
-
-  const res = await api({ accion: 'getVales', desde, hasta });
-  if (!res.ok) { document.getElementById('lista-com').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
-
-  let vales = res.vales.filter(v => v.estado !== 'pendiente');
-  if (!verFact) vales = vales.filter(v => v.estado !== 'facturado');
-
-  if (desde || hasta) {
-    vales = vales.filter(v => {
-      const f = v.fechaCanje || v.fecha;
-      if (desde && f < desde) return false;
-      if (hasta && f > hasta) return false;
-      return true;
-    });
-  }
-
-  const paraFacturar = vales.filter(v => v.estado === 'canjeado');
-  document.getElementById('com-total').textContent = 'Por facturar: ' + fmt$(paraFacturar.reduce((s,v) => s+v.monto, 0));
-  pendFacturar = paraFacturar.map(v => v.id);
-
-  renderVales('lista-com', vales, 'com');
+function cargarImagen(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
 }
 
 // ══════════════════════════════════════════════
-//  COMERCIO — CANJEAR
+//  COMERCIO
 // ══════════════════════════════════════════════
+async function cargarValesCom() {
+  document.getElementById('lista-com').innerHTML = '<p class="loading">Cargando...</p>';
+  const res = await api({ accion: 'getVales', desde: document.getElementById('com-desde').value, hasta: document.getElementById('com-hasta').value });
+  if (!res.ok) { document.getElementById('lista-com').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
+  let vales = res.vales.filter(v => v.estado !== 'pendiente');
+  if (!document.getElementById('ver-facturados').checked) vales = vales.filter(v => v.estado !== 'facturado');
+  const desde = document.getElementById('com-desde').value, hasta = document.getElementById('com-hasta').value;
+  if (desde || hasta) vales = vales.filter(v => { const f = v.fechaCanje || v.fecha; return (!desde || f >= desde) && (!hasta || f <= hasta); });
+  const pf = vales.filter(v => v.estado === 'canjeado');
+  document.getElementById('com-total').textContent = 'Por facturar: ' + fmt$(pf.reduce((s,v)=>s+v.monto,0));
+  pendFacturar = pf.map(v => v.id);
+  renderVales('lista-com', vales, 'com');
+}
+
 async function canjearVale() {
   const codigo = document.getElementById('canj-codigo').value.trim().toUpperCase();
-  const aOk = document.getElementById('alert-ok');
-  const aErr = document.getElementById('alert-err');
+  const aOk = document.getElementById('alert-ok'), aErr = document.getElementById('alert-err');
   aOk.classList.remove('show'); aErr.classList.remove('show');
   if (!codigo) return;
-
   const res = await api({ accion: 'canjearVale', codigo });
-  if (!res.ok) {
-    document.getElementById('alert-err-msg').textContent = res.error;
-    aErr.classList.add('show'); return;
-  }
+  if (!res.ok) { document.getElementById('alert-err-msg').textContent = res.error; aErr.classList.add('show'); return; }
   document.getElementById('alert-ok-msg').textContent = 'Canjeado: ' + res.destinatario + ' · ' + fmt$(res.monto);
   aOk.classList.add('show');
   document.getElementById('canj-codigo').value = '';
   cargarValesCom();
 }
 
-// ══════════════════════════════════════════════
-//  COMERCIO — FACTURAR
-// ══════════════════════════════════════════════
 function confirmarFacturar() {
   if (!pendFacturar.length) { alert('No hay vales canjeados para marcar en este período.'); return; }
-  document.getElementById('modal-body').textContent =
-    `Se marcarán ${pendFacturar.length} vale(s) como facturados. ¿Confirmar?`;
+  document.getElementById('modal-body').textContent = `Se marcarán ${pendFacturar.length} vale(s) como facturados. ¿Confirmar?`;
   document.getElementById('modal').classList.add('show');
 }
 function cerrarModal() { document.getElementById('modal').classList.remove('show'); }
@@ -875,16 +843,9 @@ async function cargarStatsFin() {
   document.getElementById('f-canj').textContent = fmt$(res.totalCanjeado);
   document.getElementById('f-pend').textContent = fmt$(res.totalPendiente);
 }
-
 async function cargarValesFin() {
   document.getElementById('lista-fin').innerHTML = '<p class="loading">Cargando...</p>';
-  const res = await api({
-    accion: 'getVales',
-    desde:    document.getElementById('fin-desde').value,
-    hasta:    document.getElementById('fin-hasta').value,
-    estado:   document.getElementById('fin-estado').value,
-    comercio: document.getElementById('fin-comercio').value,
-  });
+  const res = await api({ accion: 'getVales', desde: document.getElementById('fin-desde').value, hasta: document.getElementById('fin-hasta').value, estado: document.getElementById('fin-estado').value, comercio: document.getElementById('fin-comercio').value });
   if (!res.ok) { document.getElementById('lista-fin').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
   renderVales('lista-fin', res.vales, 'fin');
 }
@@ -895,35 +856,14 @@ async function cargarValesFin() {
 function renderVales(containerId, vales, ctx) {
   const cont = document.getElementById(containerId);
   if (!vales.length) { cont.innerHTML = '<p class="empty-msg">No hay vales para mostrar.</p>'; return; }
-
-  const badgeEstado = e => {
-    if (e === 'pendiente') return '<span class="badge b-pendiente">Pendiente</span>';
-    if (e === 'canjeado')  return '<span class="badge b-canjeado">Canjeado</span>';
-    return '<span class="badge b-facturado">Facturado</span>';
-  };
-
+  const bE = e => e==='pendiente'?'<span class="badge b-pendiente">Pendiente</span>':e==='canjeado'?'<span class="badge b-canjeado">Canjeado</span>':'<span class="badge b-facturado">Facturado</span>';
   cont.innerHTML = '<div class="vale-list">' + vales.map(v => {
-    const areaBadge = v.tipo === 'area' ? ' <span class="badge b-area">Área</span>' : '';
-    const dniExtra = (ctx !== 'com' && v.dni) ? ` <span style="font-size:12px;color:var(--text2);">· DNI ${v.dni}</span>` : '';
-    let sub = '';
-    if (ctx === 'com') {
-      sub = (v.dni ? 'DNI: ' + v.dni + ' · ' : '') + 'Canjeado: ' + fmtF(v.fechaCanje);
-    } else {
-      const nomCom = (config.comercios||[]).find(c=>c.id===v.comercioId)?.nombre || v.comercioNombre || v.comercioId;
-      sub = nomCom + ' · ' + fmtF(v.fecha);
-      if (v.fechaCanje) sub += ' · Canjeado: ' + fmtF(v.fechaCanje);
-    }
-    return `<div class="vale-item">
-      <div class="vale-info">
-        <p class="vale-id">${v.id}</p>
-        <p class="vale-dest">${v.destinatario}${areaBadge}${dniExtra}</p>
-        <p class="vale-sub">${sub}</p>
-      </div>
-      <div class="vale-right">
-        <span class="vale-monto">${fmt$(v.monto)}</span>
-        ${badgeEstado(v.estado)}
-      </div>
-    </div>`;
+    const aB = v.tipo==='area'?' <span class="badge b-area">Área</span>':'';
+    const dE = (ctx!=='com'&&v.dni)?` <span style="font-size:12px;color:var(--text2);">· DNI ${v.dni}</span>`:'';
+    let sub = ctx==='com'
+      ? (v.dni?'DNI: '+v.dni+' · ':'')+'Canjeado: '+fmtF(v.fechaCanje)
+      : ((config.comercios||[]).find(c=>c.id===v.comercioId)?.nombre||v.comercioNombre||v.comercioId)+' · '+fmtF(v.fecha)+(v.fechaCanje?' · Canjeado: '+fmtF(v.fechaCanje):'');
+    return `<div class="vale-item"><div class="vale-info"><p class="vale-id">${v.id}</p><p class="vale-dest">${v.destinatario}${aB}${dE}</p><p class="vale-sub">${sub}</p></div><div class="vale-right"><span class="vale-monto">${fmt$(v.monto)}</span>${bE(v.estado)}</div></div>`;
   }).join('') + '</div>';
 }
 </script>

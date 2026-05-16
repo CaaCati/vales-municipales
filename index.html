@@ -4,86 +4,77 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Sistema de Vales — Municipalidad de Caá Catí</title>
+<!-- QR Code library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
   :root {
-    --brand: #185FA5;
-    --brand-light: #E6F1FB;
-    --brand-dark: #0C447C;
-    --green: #0F6E56;
-    --green-light: #EAF3DE;
-    --amber: #BA7517;
-    --amber-light: #FAEEDA;
-    --red-light: #FCEBEB;
-    --red: #A32D2D;
-    --purple: #3C3489;
-    --purple-light: #EEEDFE;
-    --bg: #ffffff;
-    --bg2: #f5f5f3;
+    --brand: #185FA5; --brand-light: #E6F1FB; --brand-dark: #0C447C;
+    --green: #0F6E56; --green-light: #EAF3DE;
+    --amber: #BA7517; --amber-light: #FAEEDA;
+    --red: #A32D2D; --red-light: #FCEBEB;
+    --purple: #3C3489; --purple-light: #EEEDFE;
+    --bg: #ffffff; --bg2: #f5f5f3;
     --border: rgba(0,0,0,0.12);
-    --text: #1a1a18;
-    --text2: #5f5e5a;
-    --radius: 10px;
-    --radius-sm: 6px;
+    --text: #1a1a18; --text2: #5f5e5a;
+    --radius: 10px; --radius-sm: 6px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); font-size: 15px; min-height: 100vh; }
 
-  /* ── LOGIN ── */
+  /* LOGIN */
   #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 1rem; }
   .login-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 2rem; width: 100%; max-width: 340px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
   .login-logo { width: 52px; height: 52px; background: var(--brand-light); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; font-size: 26px; }
   .login-title { font-size: 18px; font-weight: 600; text-align: center; margin-bottom: 4px; }
   .login-sub { font-size: 13px; color: var(--text2); text-align: center; margin-bottom: 1.5rem; }
-  .login-label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 4px; }
+  .form-label { font-size: 13px; color: var(--text2); display: block; margin-bottom: 4px; }
   .login-input { width: 100%; padding: 0.55rem 0.75rem; border: 0.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; background: var(--bg); color: var(--text); margin-bottom: 1rem; }
   .login-input:focus { outline: none; border-color: var(--brand); }
   .btn-login { width: 100%; background: var(--brand); color: white; border: none; border-radius: var(--radius-sm); padding: 0.6rem; font-size: 15px; font-weight: 500; cursor: pointer; }
   .btn-login:hover { background: var(--brand-dark); }
   .login-error { font-size: 12px; color: var(--red); text-align: center; margin-top: 0.5rem; min-height: 18px; }
 
-  /* ── LAYOUT ── */
+  /* LAYOUT */
   .panel { display: none; max-width: 720px; margin: 0 auto; padding: 1rem; }
   .panel.active { display: block; }
 
-  /* ── TOPBAR ── */
+  /* TOPBAR */
   .topbar { display: flex; align-items: center; justify-content: space-between; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 0.75rem 1rem; margin-bottom: 1rem; }
   .topbar-left { display: flex; align-items: center; gap: 8px; }
-  .topbar-icon { font-size: 20px; }
   .topbar-name { font-size: 14px; font-weight: 600; }
-  .badge-readonly { font-size: 11px; background: var(--brand-light); color: var(--brand); padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+  .badge-ro { font-size: 11px; background: var(--brand-light); color: var(--brand); padding: 2px 8px; border-radius: 20px; font-weight: 500; }
   .logout-btn { font-size: 12px; color: var(--text2); background: none; border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 4px 10px; cursor: pointer; }
-  .logout-btn:hover { color: var(--text); border-color: #aaa; }
+  .logout-btn:hover { color: var(--text); }
 
-  /* ── CARDS ── */
+  /* CARDS */
   .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
   .card-title { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
 
-  /* ── STATS ── */
+  /* STATS */
   .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
   .stat { background: var(--bg2); border-radius: var(--radius-sm); padding: 0.875rem; text-align: center; }
   .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; }
-  .stat-num { font-size: 24px; font-weight: 600; }
+  .stat-num { font-size: 22px; font-weight: 600; }
   .stat-num.blue { color: var(--brand); }
   .stat-num.green { color: var(--green); }
   .stat-num.amber { color: var(--amber); }
 
-  /* ── FORMS ── */
+  /* FORMS */
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
   .form-row-1 { margin-bottom: 12px; }
   .form-group { display: flex; flex-direction: column; gap: 4px; }
-  .form-label { font-size: 12px; color: var(--text2); }
-  input[type=text], input[type=number], input[type=date], select, input[type=password] {
+  input[type=text], input[type=number], input[type=date], select {
     padding: 0.5rem 0.65rem; border: 0.5px solid var(--border); border-radius: var(--radius-sm);
     font-size: 14px; background: var(--bg); color: var(--text); width: 100%;
   }
   input:focus, select:focus { outline: none; border-color: var(--brand); }
 
-  /* ── TIPO TOGGLE ── */
+  /* TIPO TOGGLE */
   .tipo-toggle { display: flex; border: 0.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 12px; }
   .tipo-btn { flex: 1; padding: 0.45rem; font-size: 13px; cursor: pointer; background: none; border: none; color: var(--text2); }
   .tipo-btn.active { background: var(--brand); color: white; font-weight: 500; }
 
-  /* ── BUTTONS ── */
+  /* BUTTONS */
   .btn-primary { background: var(--brand); color: white; border: none; border-radius: var(--radius-sm); padding: 0.55rem 1.25rem; font-size: 14px; font-weight: 500; cursor: pointer; }
   .btn-primary:hover { background: var(--brand-dark); }
   .btn-success { background: var(--green); color: white; border: none; border-radius: var(--radius-sm); padding: 0.55rem 1.25rem; font-size: 14px; font-weight: 500; cursor: pointer; }
@@ -92,30 +83,31 @@
   .btn-secondary:hover { background: var(--bg2); }
   .btn-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 1rem; }
 
-  /* ── FILTERS ── */
+  /* FILTERS */
   .filter-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1rem; }
   .filter-row input, .filter-row select { flex: 1; min-width: 130px; }
 
-  /* ── VALE LIST ── */
+  /* VALE LIST */
   .vale-list { display: flex; flex-direction: column; gap: 8px; }
   .vale-item { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-sm); padding: 0.875rem 1rem; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .vale-item:hover { border-color: #aaa; }
   .vale-info { flex: 1; min-width: 0; }
   .vale-id { font-size: 11px; color: var(--text2); font-family: monospace; margin-bottom: 2px; }
-  .vale-dest { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .vale-dest { font-size: 14px; font-weight: 500; }
   .vale-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
   .vale-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
   .vale-monto { font-size: 15px; font-weight: 600; }
   .empty-msg { font-size: 13px; color: var(--text2); text-align: center; padding: 1.5rem 0; }
+  .loading { font-size: 13px; color: var(--text2); text-align: center; padding: 1.5rem 0; }
 
-  /* ── BADGES ── */
+  /* BADGES */
   .badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
   .b-pendiente { background: var(--amber-light); color: #633806; }
   .b-canjeado  { background: var(--green-light); color: #27500A; }
   .b-facturado { background: var(--purple-light); color: var(--purple); }
   .b-area      { background: var(--brand-light); color: var(--brand-dark); }
 
-  /* ── CANJEAR ── */
+  /* CANJEAR */
   .canjear-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 1rem; }
   .canjear-row .form-group { flex: 1; }
   .alert { padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 0.75rem; display: none; align-items: center; gap: 8px; }
@@ -123,7 +115,7 @@
   .alert-ok  { background: var(--green-light); color: #27500A; border: 0.5px solid #97C459; }
   .alert-err { background: var(--red-light); color: var(--red); border: 0.5px solid #F09595; }
 
-  /* ── EXPORT BAR ── */
+  /* EXPORT BAR */
   .export-bar { background: var(--bg2); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem; }
   .export-bar-title { font-size: 13px; font-weight: 500; margin-bottom: 0.75rem; }
   .export-bar-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
@@ -131,7 +123,7 @@
   .total-tag { font-size: 13px; font-weight: 600; background: var(--brand-light); color: var(--brand); padding: 0.5rem 0.875rem; border-radius: var(--radius-sm); white-space: nowrap; align-self: flex-end; }
   .export-extra { margin-top: 10px; font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 6px; cursor: pointer; }
 
-  /* ── MODAL ── */
+  /* MODAL */
   .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
   .modal-bg.show { display: flex; }
   .modal { background: var(--bg); border-radius: var(--radius); padding: 1.5rem; max-width: 340px; width: 100%; }
@@ -139,12 +131,43 @@
   .modal-body { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 1.25rem; }
   .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
-  /* ── LOADING ── */
-  .loading { text-align: center; padding: 1.5rem; color: var(--text2); font-size: 13px; }
+  /* ── VOUCHER IMPRIMIBLE ── */
+  #voucher-container {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+    z-index: 200; align-items: center; justify-content: center; padding: 1rem;
+  }
+  #voucher-container.show { display: flex; }
+  #voucher-wrap {
+    background: white; border-radius: var(--radius); padding: 1.5rem;
+    max-width: 400px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+  }
+  #voucher-actions { display: flex; gap: 8px; justify-content: flex-end; margin-bottom: 1rem; }
+  #voucher-print {
+    background: white; border: 1px solid #ccc; border-radius: 8px;
+    padding: 1.25rem; font-family: Arial, sans-serif;
+  }
+  .vp-header { text-align: center; border-bottom: 2px solid #185FA5; padding-bottom: 0.75rem; margin-bottom: 1rem; }
+  .vp-muni { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.5px; }
+  .vp-title { font-size: 20px; font-weight: 700; color: #185FA5; margin: 2px 0; }
+  .vp-id { font-size: 13px; font-family: monospace; color: #333; }
+  .vp-body { margin-bottom: 1rem; }
+  .vp-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 5px 0; border-bottom: 0.5px solid #eee; font-size: 13px; }
+  .vp-row:last-child { border-bottom: none; }
+  .vp-key { color: #666; flex-shrink: 0; margin-right: 8px; }
+  .vp-val { font-weight: 500; text-align: right; }
+  .vp-monto-big { font-size: 22px; font-weight: 700; color: #185FA5; text-align: center; padding: 0.75rem 0; border: 2px solid #185FA5; border-radius: 6px; margin: 0.75rem 0; }
+  .vp-qr { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 0.75rem; }
+  .vp-qr-label { font-size: 10px; color: #888; text-align: center; }
+  .vp-footer { text-align: center; font-size: 10px; color: #999; margin-top: 0.75rem; border-top: 0.5px solid #eee; padding-top: 0.75rem; }
+
+  @media print {
+    body * { display: none !important; }
+    #voucher-print, #voucher-print * { display: block !important; }
+    #voucher-print { position: fixed; inset: 0; border: none; padding: 1.5rem; box-shadow: none; }
+    #voucher-actions { display: none !important; }
+  }
 
   @media (max-width: 480px) {
-    .stats-grid { grid-template-columns: repeat(3, 1fr); }
-    .stat-num { font-size: 20px; }
     .form-row { grid-template-columns: 1fr; }
     .export-bar-row { flex-direction: column; }
     .total-tag { align-self: stretch; text-align: center; }
@@ -153,24 +176,24 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════ LOGIN ═══ -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-card">
     <div class="login-logo">🎫</div>
     <p class="login-title">Sistema de Vales</p>
     <p class="login-sub">Municipalidad de Caá Catí</p>
-    <label class="login-label">Contraseña</label>
+    <label class="form-label">Contraseña</label>
     <input type="password" id="login-pass" class="login-input" placeholder="••••••••" autocomplete="current-password" />
     <button class="btn-login" onclick="doLogin()">Ingresar</button>
     <p class="login-error" id="login-error"></p>
   </div>
 </div>
 
-<!-- ══════════════════════════════════ PANEL SECRETARÍA ═══ -->
+<!-- PANEL SECRETARÍA -->
 <div id="panel-secretaria" class="panel">
   <div class="topbar">
     <div class="topbar-left">
-      <span class="topbar-icon">🎫</span>
+      <span>🎫</span>
       <span class="topbar-name">Secretaría General de Gobierno</span>
     </div>
     <button class="logout-btn" onclick="logout()">Salir</button>
@@ -185,7 +208,7 @@
   <div class="card">
     <p class="card-title">Emitir nuevo vale</p>
     <div class="form-row-1">
-      <p class="form-label" style="margin-bottom:6px;">Tipo de destinatario</p>
+      <label class="form-label" style="margin-bottom:6px;">Tipo de destinatario</label>
       <div class="tipo-toggle">
         <button class="tipo-btn active" id="btn-persona" onclick="setTipo('persona')">👤 Persona</button>
         <button class="tipo-btn" id="btn-area" onclick="setTipo('area')">🏛️ Área municipal</button>
@@ -208,18 +231,25 @@
       <div class="form-group"><label class="form-label">Comercio</label>
         <select id="n-comercio"><option value="">Seleccionar...</option></select>
       </div>
-      <div class="form-group"><label class="form-label">Monto ($)</label><input type="number" id="n-monto" placeholder="15000" min="1" /></div>
+      <div class="form-group"><label class="form-label">Monto ($)</label>
+        <input type="number" id="n-monto" placeholder="15000" min="1" />
+      </div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">Enviar por</label>
+      <div class="form-group"><label class="form-label">Entrega</label>
         <select id="n-envio" onchange="toggleWsp()">
           <option value="imprimir">Imprimir voucher</option>
-          <option value="whatsapp">WhatsApp</option>
+          <option value="whatsapp">Enviar por WhatsApp</option>
         </select>
       </div>
-      <div class="form-group" id="wsp-group" style="display:none;"><label class="form-label">Teléfono</label><input type="text" id="n-tel" placeholder="3794 xxxxxx" /></div>
+      <div class="form-group" id="wsp-group" style="display:none;">
+        <label class="form-label">Teléfono</label>
+        <input type="text" id="n-tel" placeholder="3794 xxxxxx" />
+      </div>
     </div>
-    <div class="btn-row"><button class="btn-success" onclick="emitirVale()">＋ Emitir vale</button></div>
+    <div class="btn-row">
+      <button class="btn-success" id="btn-emitir" onclick="emitirVale()">＋ Emitir vale</button>
+    </div>
   </div>
 
   <div class="card">
@@ -241,11 +271,11 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════ PANEL COMERCIO ═══ -->
+<!-- PANEL COMERCIO -->
 <div id="panel-comercio" class="panel">
   <div class="topbar">
     <div class="topbar-left">
-      <span class="topbar-icon">🏪</span>
+      <span>🏪</span>
       <span class="topbar-name" id="comercio-topbar">Comercio</span>
     </div>
     <button class="logout-btn" onclick="logout()">Salir</button>
@@ -256,7 +286,8 @@
     <div class="canjear-row">
       <div class="form-group">
         <label class="form-label">Código del vale</label>
-        <input type="text" id="canj-codigo" placeholder="Ej: VAL-2026-0003" style="font-family:monospace;text-transform:uppercase;letter-spacing:0.5px;" />
+        <input type="text" id="canj-codigo" placeholder="Ej: VAL-2026-0003"
+          style="font-family:monospace;text-transform:uppercase;letter-spacing:0.5px;" />
       </div>
       <button class="btn-success" onclick="canjearVale()">Canjear</button>
     </div>
@@ -282,13 +313,13 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════ PANEL FINANZAS ═══ -->
+<!-- PANEL FINANZAS -->
 <div id="panel-finanzas" class="panel">
   <div class="topbar">
     <div class="topbar-left">
-      <span class="topbar-icon">📊</span>
+      <span>📊</span>
       <span class="topbar-name">Finanzas</span>
-      <span class="badge-readonly">Solo lectura</span>
+      <span class="badge-ro">Solo lectura</span>
     </div>
     <button class="logout-btn" onclick="logout()">Salir</button>
   </div>
@@ -318,7 +349,7 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════ MODAL ═══ -->
+<!-- MODAL FACTURAR -->
 <div class="modal-bg" id="modal">
   <div class="modal">
     <p class="modal-title">Marcar como facturados</p>
@@ -330,22 +361,54 @@
   </div>
 </div>
 
+<!-- VOUCHER IMPRIMIBLE -->
+<div id="voucher-container">
+  <div id="voucher-wrap">
+    <div id="voucher-actions">
+      <button class="btn-secondary" onclick="cerrarVoucher()">Cerrar</button>
+      <button class="btn-primary" onclick="window.print()">🖨️ Imprimir</button>
+    </div>
+    <div id="voucher-print">
+      <div class="vp-header">
+        <p class="vp-muni">Municipalidad de Caá Catí — Corrientes</p>
+        <p class="vp-title">VALE MUNICIPAL</p>
+        <p class="vp-id" id="vp-id">VAL-2026-0000</p>
+      </div>
+      <div class="vp-body">
+        <div class="vp-row"><span class="vp-key">Destinatario</span><span class="vp-val" id="vp-dest">—</span></div>
+        <div class="vp-row" id="vp-dni-row"><span class="vp-key">DNI</span><span class="vp-val" id="vp-dni">—</span></div>
+        <div class="vp-row"><span class="vp-key">Comercio autorizado</span><span class="vp-val" id="vp-comercio">—</span></div>
+        <div class="vp-row"><span class="vp-key">Fecha de emisión</span><span class="vp-val" id="vp-fecha">—</span></div>
+      </div>
+      <div class="vp-monto-big" id="vp-monto">$0</div>
+      <div class="vp-qr">
+        <div id="vp-qr-code"></div>
+        <p class="vp-qr-label">El comercio debe escanear o ingresar este código para validar el vale</p>
+      </div>
+      <div class="vp-footer">
+        Secretaría General de Gobierno — Municipalidad de Caá Catí<br>
+        Este vale es válido únicamente en el comercio indicado y por el monto expresado.
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════
-//  CONFIGURACIÓN — pegá tu URL de Apps Script acá
+//  CONFIGURACIÓN
 // ══════════════════════════════════════════════
 const API = 'https://script.google.com/macros/s/AKfycbxqIqtNSFFVz1AHAMqYCIHWAzoGV6CZ4KbbkwSKVQd23pANFe2F6O_i6foHFnnb1i30PA/exec';
 
 // ══════════════════════════════════════════════
-//  ESTADO GLOBAL
+//  ESTADO
 // ══════════════════════════════════════════════
-let sesion = null;         // { rol, nombre, comercioId, comercioNombre }
-let config = {};           // { areas, comercios }
-let pendFacturar = [];     // IDs a marcar como facturados
-let pass = '';             // guardado para re-enviar en cada request
+let sesion = null;
+let config = {};
+let pendFacturar = [];
+let pass = '';
 
 // ══════════════════════════════════════════════
-//  API HELPER
+//  API
 // ══════════════════════════════════════════════
 async function api(params) {
   const qs = new URLSearchParams({ ...params, pass });
@@ -353,7 +416,7 @@ async function api(params) {
     const r = await fetch(API + '?' + qs);
     return await r.json();
   } catch (e) {
-    return { ok: false, error: 'Error de conexión. Revisá tu internet.' };
+    return { ok: false, error: 'Error de conexión.' };
   }
 }
 
@@ -361,10 +424,13 @@ async function api(params) {
 //  FORMATOS
 // ══════════════════════════════════════════════
 function fmt$(n) { return '$' + Number(n).toLocaleString('es-AR'); }
+
 function fmtF(iso) {
   if (!iso) return '';
-  const p = iso.toString().split('-');
-  return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0] : iso;
+  // Limpiar sufijos de timezone si quedaron
+  const clean = String(iso).replace(/T.*$/, '').trim();
+  const p = clean.split('-');
+  return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0] : clean;
 }
 
 // ══════════════════════════════════════════════
@@ -381,30 +447,22 @@ async function doLogin() {
 
   pass = p;
   const res = await api({ accion: 'login' });
-
   btn.textContent = 'Ingresar'; btn.disabled = false;
 
   if (!res.ok) { err.textContent = res.error || 'Contraseña incorrecta.'; pass = ''; return; }
 
   sesion = res;
-
-  // Cargar config (áreas y comercios)
   const cfg = await api({ accion: 'getConfig' });
-  if (cfg.ok) {
-    config = cfg;
-    poblarSelectores();
-  }
+  if (cfg.ok) { config = cfg; poblarSelectores(); }
 
   document.getElementById('login-screen').style.display = 'none';
 
   if (res.rol === 'secretaria') {
     mostrarPanel('panel-secretaria');
-    cargarStatsSec();
-    cargarValesSec();
+    cargarStatsSec(); cargarValesSec();
   } else if (res.rol === 'finanzas') {
     mostrarPanel('panel-finanzas');
-    cargarStatsFin();
-    cargarValesFin();
+    cargarStatsFin(); cargarValesFin();
   } else if (res.rol === 'comercio') {
     document.getElementById('comercio-topbar').textContent = res.comercioNombre || res.nombre;
     mostrarPanel('panel-comercio');
@@ -420,9 +478,8 @@ function poblarSelectores() {
   selArea.innerHTML = '<option value="">Seleccionar área...</option>';
   areas.forEach(a => { const o = document.createElement('option'); o.value = a; o.textContent = a; selArea.appendChild(o); });
 
-  [document.getElementById('n-comercio'), document.getElementById('sec-comercio'), document.getElementById('fin-comercio')].forEach(sel => {
-    const isFilter = sel.id !== 'n-comercio';
-    const opt0 = isFilter ? '<option value="">Todos los comercios</option>' : '<option value="">Seleccionar...</option>';
+  [document.getElementById('n-comercio'), document.getElementById('sec-comercio'), document.getElementById('fin-comercio')].forEach((sel, i) => {
+    const opt0 = i === 0 ? '<option value="">Seleccionar...</option>' : '<option value="">Todos los comercios</option>';
     sel.innerHTML = opt0;
     comercios.forEach(c => { const o = document.createElement('option'); o.value = c.id; o.textContent = c.nombre; sel.appendChild(o); });
   });
@@ -444,6 +501,22 @@ function logout() {
 document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
 // ══════════════════════════════════════════════
+//  TIPO DESTINATARIO / WSP
+// ══════════════════════════════════════════════
+let tipoDestinatario = 'persona';
+function setTipo(t) {
+  tipoDestinatario = t;
+  document.getElementById('campos-persona').style.display = t === 'persona' ? 'block' : 'none';
+  document.getElementById('campos-area').style.display = t === 'area' ? 'block' : 'none';
+  document.getElementById('btn-persona').classList.toggle('active', t === 'persona');
+  document.getElementById('btn-area').classList.toggle('active', t === 'area');
+}
+function toggleWsp() {
+  document.getElementById('wsp-group').style.display =
+    document.getElementById('n-envio').value === 'whatsapp' ? 'block' : 'none';
+}
+
+// ══════════════════════════════════════════════
 //  SECRETARÍA — STATS
 // ══════════════════════════════════════════════
 async function cargarStatsSec() {
@@ -455,39 +528,24 @@ async function cargarStatsSec() {
 }
 
 // ══════════════════════════════════════════════
-//  SECRETARÍA — LISTA VALES
+//  SECRETARÍA — LISTA
 // ══════════════════════════════════════════════
 async function cargarValesSec() {
   document.getElementById('lista-sec').innerHTML = '<p class="loading">Cargando...</p>';
-  const params = {
+  const res = await api({
     accion: 'getVales',
     desde: document.getElementById('sec-desde').value,
     hasta: document.getElementById('sec-hasta').value,
     estado: document.getElementById('sec-estado').value,
     comercio: document.getElementById('sec-comercio').value,
-  };
-  const res = await api(params);
-  if (!res.ok) { document.getElementById('lista-sec').innerHTML = '<p class="empty-msg">Error: ' + res.error + '</p>'; return; }
+  });
+  if (!res.ok) { document.getElementById('lista-sec').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
   renderVales('lista-sec', res.vales, 'sec');
 }
 
 // ══════════════════════════════════════════════
 //  SECRETARÍA — EMITIR
 // ══════════════════════════════════════════════
-let tipoDestinatario = 'persona';
-
-function setTipo(t) {
-  tipoDestinatario = t;
-  document.getElementById('campos-persona').style.display = t === 'persona' ? 'block' : 'none';
-  document.getElementById('campos-area').style.display = t === 'area' ? 'block' : 'none';
-  document.getElementById('btn-persona').classList.toggle('active', t === 'persona');
-  document.getElementById('btn-area').classList.toggle('active', t === 'area');
-}
-
-function toggleWsp() {
-  document.getElementById('wsp-group').style.display = document.getElementById('n-envio').value === 'whatsapp' ? 'block' : 'none';
-}
-
 async function emitirVale() {
   const comercioId = document.getElementById('n-comercio').value;
   const monto = document.getElementById('n-monto').value;
@@ -504,15 +562,15 @@ async function emitirVale() {
   if (!comercioId) { alert('Seleccioná un comercio.'); return; }
   if (!monto || Number(monto) <= 0) { alert('Ingresá un monto válido.'); return; }
 
-  const btn = document.querySelector('#panel-secretaria .btn-success');
+  const btn = document.getElementById('btn-emitir');
   btn.textContent = 'Emitiendo...'; btn.disabled = true;
 
   const res = await api({ accion: 'emitirVale', tipo: tipoDestinatario, destinatario, dni, comercioId, monto });
-
   btn.textContent = '＋ Emitir vale'; btn.disabled = false;
 
   if (!res.ok) { alert('Error: ' + res.error); return; }
 
+  // Limpiar formulario
   document.getElementById('n-benef').value = '';
   document.getElementById('n-dni').value = '';
   document.getElementById('n-area').value = '';
@@ -520,10 +578,63 @@ async function emitirVale() {
   document.getElementById('n-monto').value = '';
 
   const envio = document.getElementById('n-envio').value;
-  alert('Vale ' + res.id + ' creado correctamente.\n' + (envio === 'imprimir' ? '(Imprimí el voucher para el beneficiario)' : '(Enviá el código por WhatsApp)'));
+
+  if (envio === 'imprimir') {
+    mostrarVoucher(res);
+  } else {
+    // WhatsApp
+    const tel = document.getElementById('n-tel').value.replace(/\D/g, '');
+    const comercioNombre = (config.comercios || []).find(c => c.id === comercioId)?.nombre || comercioId;
+    const msg = encodeURIComponent(
+      `🎫 *Vale Municipal — Municipalidad de Caá Catí*\n\n` +
+      `Código: *${res.id}*\n` +
+      `Beneficiario: ${res.destinatario}\n` +
+      `Comercio: ${res.comercioNombre || comercioNombre}\n` +
+      `Monto: ${fmt$(res.monto)}\n` +
+      `Fecha: ${fmtF(res.fecha)}\n\n` +
+      `Presentá este código en el comercio para canjearlo.`
+    );
+    const url = tel ? `https://wa.me/549${tel}?text=${msg}` : `https://wa.me/?text=${msg}`;
+    window.open(url, '_blank');
+  }
 
   cargarStatsSec();
   cargarValesSec();
+}
+
+// ══════════════════════════════════════════════
+//  VOUCHER
+// ══════════════════════════════════════════════
+function mostrarVoucher(vale) {
+  document.getElementById('vp-id').textContent = vale.id;
+  document.getElementById('vp-dest').textContent = vale.destinatario;
+  document.getElementById('vp-fecha').textContent = fmtF(vale.fecha);
+  document.getElementById('vp-monto').textContent = fmt$(vale.monto);
+  document.getElementById('vp-comercio').textContent = vale.comercioNombre || '—';
+
+  const dniRow = document.getElementById('vp-dni-row');
+  if (vale.dni) {
+    document.getElementById('vp-dni').textContent = vale.dni;
+    dniRow.style.display = 'flex';
+  } else {
+    dniRow.style.display = 'none';
+  }
+
+  // Generar QR
+  const qrDiv = document.getElementById('vp-qr-code');
+  qrDiv.innerHTML = '';
+  new QRCode(qrDiv, {
+    text: vale.id,
+    width: 110, height: 110,
+    colorDark: '#185FA5', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  document.getElementById('voucher-container').classList.add('show');
+}
+
+function cerrarVoucher() {
+  document.getElementById('voucher-container').classList.remove('show');
 }
 
 // ══════════════════════════════════════════════
@@ -536,7 +647,7 @@ async function cargarValesCom() {
   const verFact = document.getElementById('ver-facturados').checked;
 
   const res = await api({ accion: 'getVales', desde, hasta });
-  if (!res.ok) { document.getElementById('lista-com').innerHTML = '<p class="empty-msg">Error: ' + res.error + '</p>'; return; }
+  if (!res.ok) { document.getElementById('lista-com').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
 
   let vales = res.vales.filter(v => v.estado !== 'pendiente');
   if (!verFact) vales = vales.filter(v => v.estado !== 'facturado');
@@ -552,8 +663,7 @@ async function cargarValesCom() {
   }
 
   const paraFacturar = vales.filter(v => v.estado === 'canjeado');
-  const total = paraFacturar.reduce((s, v) => s + v.monto, 0);
-  document.getElementById('com-total').textContent = 'Por facturar: ' + fmt$(total);
+  document.getElementById('com-total').textContent = 'Por facturar: ' + fmt$(paraFacturar.reduce((s, v) => s + v.monto, 0));
   pendFacturar = paraFacturar.map(v => v.id);
 
   renderVales('lista-com', vales, 'com');
@@ -570,12 +680,10 @@ async function canjearVale() {
   if (!codigo) return;
 
   const res = await api({ accion: 'canjearVale', codigo });
-
   if (!res.ok) {
     document.getElementById('alert-err-msg').textContent = res.error;
     aErr.classList.add('show'); return;
   }
-
   document.getElementById('alert-ok-msg').textContent = 'Canjeado: ' + res.destinatario + ' · ' + fmt$(res.monto);
   aOk.classList.add('show');
   document.getElementById('canj-codigo').value = '';
@@ -588,13 +696,10 @@ async function canjearVale() {
 function confirmarFacturar() {
   if (!pendFacturar.length) { alert('No hay vales canjeados para marcar como facturados en este período.'); return; }
   document.getElementById('modal-body').textContent =
-    'Se marcarán ' + pendFacturar.length + ' vale(s) como facturados. ' +
-    'Ya no aparecerán en el listado normal. ¿Confirmar?';
+    `Se marcarán ${pendFacturar.length} vale(s) como facturados. Ya no aparecerán en el listado normal. ¿Confirmar?`;
   document.getElementById('modal').classList.add('show');
 }
-
 function cerrarModal() { document.getElementById('modal').classList.remove('show'); }
-
 async function ejecutarFacturar() {
   cerrarModal();
   const res = await api({ accion: 'marcarFacturado', ids: pendFacturar.join(',') });
@@ -604,7 +709,7 @@ async function ejecutarFacturar() {
 }
 
 // ══════════════════════════════════════════════
-//  FINANZAS — STATS Y LISTA
+//  FINANZAS
 // ══════════════════════════════════════════════
 async function cargarStatsFin() {
   const res = await api({ accion: 'getStats' });
@@ -623,12 +728,12 @@ async function cargarValesFin() {
     estado: document.getElementById('fin-estado').value,
     comercio: document.getElementById('fin-comercio').value,
   });
-  if (!res.ok) { document.getElementById('lista-fin').innerHTML = '<p class="empty-msg">Error: ' + res.error + '</p>'; return; }
+  if (!res.ok) { document.getElementById('lista-fin').innerHTML = `<p class="empty-msg">Error: ${res.error}</p>`; return; }
   renderVales('lista-fin', res.vales, 'fin');
 }
 
 // ══════════════════════════════════════════════
-//  RENDER VALES (compartido)
+//  RENDER VALES
 // ══════════════════════════════════════════════
 function renderVales(containerId, vales, ctx) {
   const cont = document.getElementById(containerId);
@@ -642,20 +747,20 @@ function renderVales(containerId, vales, ctx) {
 
   cont.innerHTML = '<div class="vale-list">' + vales.map(v => {
     const areaBadge = v.tipo === 'area' ? ' <span class="badge b-area">Área</span>' : '';
-    const dniTxt = v.dni ? ' · DNI ' + v.dni : '';
     let sub = '';
     if (ctx === 'com') {
       sub = (v.dni ? 'DNI: ' + v.dni + ' · ' : '') + 'Canjeado: ' + fmtF(v.fechaCanje);
     } else {
-      sub = (config.comercios || []).find(c => c.id === v.comercioId)?.nombre || v.comercioNombre || v.comercioId;
-      sub += ' · ' + fmtF(v.fecha);
+      const nomCom = (config.comercios || []).find(c => c.id === v.comercioId)?.nombre || v.comercioNombre || v.comercioId;
+      sub = nomCom + ' · ' + fmtF(v.fecha);
       if (v.fechaCanje) sub += ' · Canjeado: ' + fmtF(v.fechaCanje);
     }
+    const dniExtra = (ctx !== 'com' && v.dni) ? ` <span style="font-size:12px;color:var(--text2);">· DNI ${v.dni}</span>` : '';
 
     return `<div class="vale-item">
       <div class="vale-info">
         <p class="vale-id">${v.id}</p>
-        <p class="vale-dest">${v.destinatario}${areaBadge}${ctx !== 'com' && v.dni ? '<span style="font-size:12px;color:var(--text2);"> · DNI ' + v.dni + '</span>' : ''}</p>
+        <p class="vale-dest">${v.destinatario}${areaBadge}${dniExtra}</p>
         <p class="vale-sub">${sub}</p>
       </div>
       <div class="vale-right">
